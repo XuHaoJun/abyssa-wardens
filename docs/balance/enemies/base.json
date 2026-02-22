@@ -1,0 +1,207 @@
+{
+  "enemies": [
+    {
+      "id": "enemy_001",
+      "name": "哥布林",
+      "name_en": "Goblin",
+      "category": "basic",
+      "tags": ["普通", "快速"],
+      "stats": {
+        "hp": 100,
+        "damage": 10,
+        "speed": 2.5,
+        "armor": 0,
+        "resist": 0,
+        "reward_exp": 5,
+        "reward_gold": 2
+      },
+      "behavior": {
+        "type": "melee",
+        "tauntable": true
+      }
+    },
+    {
+      "id": "enemy_002",
+      "name": "獸人戰士",
+      "name_en": "Orc Warrior",
+      "category": "basic",
+      "tags": ["普通", "物理"],
+      "stats": {
+        "hp": 250,
+        "damage": 20,
+        "speed": 1.8,
+        "armor": 15,
+        "resist": 0,
+        "reward_exp": 12,
+        "reward_gold": 5
+      },
+      "behavior": {
+        "type": "melee",
+        "tauntable": true
+      }
+    },
+    {
+      "id": "enemy_003",
+      "name": "幽靈",
+      "name_en": "Ghost",
+      "category": "basic",
+      "tags": ["普通", "魔法"],
+      "stats": {
+        "hp": 80,
+        "damage": 15,
+        "speed": 2.2,
+        "armor": 0,
+        "resist": 20,
+        "reward_exp": 10,
+        "reward_gold": 4
+      },
+      "behavior": {
+        "type": "ranged",
+        "tauntable": true
+      }
+    },
+    {
+      "id": "enemy_004",
+      "name": "岩石巨人",
+      "name_en": "Rock Golem",
+      "category": "tank",
+      "tags": ["重甲", "緩慢"],
+      "stats": {
+        "hp": 800,
+        "damage": 30,
+        "speed": 1.0,
+        "armor": 50,
+        "resist": 10,
+        "reward_exp": 25,
+        "reward_gold": 12
+      },
+      "behavior": {
+        "type": "melee",
+        "tauntable": true
+      }
+    },
+    {
+      "id": "enemy_005",
+      "name": "暗影刺客",
+      "name_en": "Shadow Assassin",
+      "category": "fast",
+      "tags": ["快速", "閃避"],
+      "stats": {
+        "hp": 60,
+        "damage": 25,
+        "speed": 4.0,
+        "armor": 0,
+        "resist": 0,
+        "reward_exp": 15,
+        "reward_gold": 8
+      },
+      "behavior": {
+        "type": "melee",
+        "evasion": 25,
+        "tauntable": false
+      }
+    },
+    {
+      "id": "enemy_006",
+      "name": "法師學徒",
+      "name_en": "Apprentice Mage",
+      "category": "ranged",
+      "tags": ["遠程", "魔法"],
+      "stats": {
+        "hp": 120,
+        "damage": 35,
+        "speed": 1.5,
+        "armor": 5,
+        "resist": 30,
+        "reward_exp": 20,
+        "reward_gold": 10
+      },
+      "behavior": {
+        "type": "ranged",
+        "tauntable": true
+      }
+    },
+    {
+      "id": "enemy_007",
+      "name": "殭屍",
+      "name_en": "Zombie",
+      "category": "swarm",
+      "tags": ["群體", "不死"],
+      "stats": {
+        "hp": 50,
+        "damage": 8,
+        "speed": 1.2,
+        "armor": 0,
+        "resist": 10,
+        "reward_exp": 3,
+        "reward_gold": 1
+      },
+      "behavior": {
+        "type": "melee",
+        "tauntable": true
+      }
+    },
+    {
+      "id": "enemy_008",
+      "name": "狼",
+      "name_en": "Wolf",
+      "category": "fast",
+      "tags": ["快速", "突襲"],
+      "stats": {
+        "hp": 80,
+        "damage": 18,
+        "speed": 3.5,
+        "armor": 5,
+        "resist": 0,
+        "reward_exp": 8,
+        "reward_gold": 4
+      },
+      "behavior": {
+        "type": "melee",
+        "tauntable": true
+      }
+    },
+    {
+      "id": "enemy_009",
+      "name": "牛頭人",
+      "name_en": "Minotaur",
+      "category": "tank",
+      "tags": ["重甲", "衝鋒"],
+      "stats": {
+        "hp": 600,
+        "damage": 40,
+        "speed": 1.5,
+        "armor": 40,
+        "resist": 5,
+        "reward_exp": 30,
+        "reward_gold": 15
+      },
+      "behavior": {
+        "type": "melee",
+        "charge": true,
+        "tauntable": true
+      }
+    },
+    {
+      "id": "enemy_010",
+      "name": "鷹身女妖",
+      "name_en": "Harpy",
+      "category": "flying",
+      "tags": ["飛行", "遠程"],
+      "stats": {
+        "hp": 100,
+        "damage": 20,
+        "speed": 3.0,
+        "armor": 0,
+        "resist": 10,
+        "reward_exp": 12,
+        "reward_gold": 6
+      },
+      "behavior": {
+        "type": "ranged",
+        "flying": true,
+        "tauntable": false
+      }
+    }
+  ]
+}
