@@ -1,0 +1,82 @@
+{
+  "base_types": [
+    {
+      "id": "weapon_001",
+      "name": "長劍",
+      "name_en": "Longsword",
+      "type": "one_hand",
+      "slots": 3,
+      "stats": {
+        "damage": 25,
+        "attack_speed": 1.2
+      }
+    },
+    {
+      "id": "weapon_002",
+      "name": "巨斧",
+      "name_en": "Greataxe",
+      "type": "two_hand",
+      "slots": 6,
+      "stats": {
+        "damage": 50,
+        "attack_speed": 0.8
+      }
+    },
+    {
+      "id": "weapon_003",
+      "name": "法杖",
+      "name_en": "Staff",
+      "type": "two_hand",
+      "slots": 6,
+      "stats": {
+        "damage": 15,
+        "spell_power": 40
+      }
+    },
+    {
+      "id": "weapon_004",
+      "name": "弓",
+      "name_en": "Bow",
+      "type": "two_hand",
+      "slots": 4,
+      "stats": {
+        "damage": 30,
+        "attack_speed": 1.5
+      }
+    },
+    {
+      "id": "weapon_005",
+      "name": "盾牌",
+      "name_en": "Shield",
+      "type": "off_hand",
+      "slots": 3,
+      "stats": {
+        "block": 20,
+        "armor": 15
+      }
+    },
+    {
+      "id": "weapon_006",
+      "name": "匕首",
+      "name_en": "Dagger",
+      "type": "one_hand",
+      "slots": 2,
+      "stats": {
+        "damage": 15,
+        "attack_speed": 2.0
+      }
+    }
+  ],
+  "affix_pool": [
+    { "id": "affix_001", "name": "攻擊力", "type": "flat_damage", "min": 5, "max": 15 },
+    { "id": "affix_002", "name": "攻擊速度", "type": "attack_speed", "min": 3, "max": 8 },
+    { "id": "affix_003", "name": "暴擊率", "type": "crit_chance", "min": 2, "max": 5 },
+    { "id": "affix_004", "name": "暴擊傷害", "type": "crit_damage", "min": 10, "max": 20 },
+    { "id": "affix_005", "name": "物理傷害", "type": "physical_damage", "min": 5, "max": 12 },
+    { "id": "affix_006", "name": "火焰傷害", "type": "fire_damage", "min": 4, "max": 10 },
+    { "id": "affix_007", "name": "冰霜傷害", "type": "cold_damage", "min": 4, "max": 10 },
+    { "id": "affix_008", "name": "閃電傷害", "type": "lightning_damage", "min": 4, "max": 10 },
+    { "id": "affix_009", "name": "生命偷取", "type": "life_leech", "min": 2, "max": 4 },
+    { "id": "affix_010", "name": "範圍擴大", "type": "area_percent", "min": 5, "max": 12 }
+  ]
+}
