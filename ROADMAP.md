@@ -78,7 +78,7 @@
 | 順序 | 狀態 | 檔案 | 說明 |
 |:----:|:----:|------|------|
 | 21 | [x] | `levels/deployment/tile-config.md` | 平地/高台網格規則 |
-| 22 | [ ] | `levels/terrain/traps.md` | 陷阱與環境機制 |
+| 22 | [x] | `levels/terrain/traps.md` | 陷阱與環境機制 |
 
 ---
 
