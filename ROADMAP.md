@@ -97,7 +97,7 @@
 ### 4.2 Boss 戰 (bosses/)
 | 順序 | 狀態 | 檔案 | 說明 |
 |:----:|:----:|------|------|
-| 25 | [ ] | `encounters/bosses/莫拉斯.md` | Uber Boss 完整階段設計 |
+| 25 | [x] | `encounters/bosses/莫拉斯.md` | Uber Boss 完整階段設計 |
 | 26 | [ ] | `encounters/bosses/守門Boss.md` | 中型守門 Boss 設計 |
 
 ---
