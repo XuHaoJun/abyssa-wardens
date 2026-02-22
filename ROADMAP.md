@@ -92,7 +92,7 @@
 | 順序 | 狀態 | 檔案 | 說明 |
 |:----:|:----:|------|------|
 | 23 | [x] | `encounters/waves/tutorial-waves.md` | 教學關波次設計 |
-| 24 | [ ] | `encounters/waves/main-waves.md` | 主線關卡波次配置 |
+| 24 | [x] | `encounters/waves/main-waves.md` | 主線關卡波次配置 |
 
 ### 4.2 Boss 戰 (bosses/)
 | 順序 | 狀態 | 檔案 | 說明 |
