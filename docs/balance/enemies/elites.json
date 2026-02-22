@@ -1,0 +1,94 @@
+{
+  "elite_affixes": [
+    {
+      "id": "elite_001",
+      "name": "冰凍",
+      "name_en": "Frozen",
+      "description": "攻擊時有 20% 機率冰凍敵人 2 秒",
+      "effect": {
+        "freeze_chance": 20,
+        "freeze_duration": 2
+      },
+      "difficulty_increase": 1.3
+    },
+    {
+      "id": "elite_002",
+      "name": "築牆",
+      "name_en": "Wall Builder",
+      "description": "會在路徑上隨機放置障礙物，阻擋射彈",
+      "effect": {
+        "spawn_obstacle": true,
+        "obstacle_duration": 10
+      },
+      "difficulty_increase": 1.4
+    },
+    {
+      "id": "elite_003",
+      "name": "熔火",
+      "name_en": "Molten",
+      "description": "死亡時爆炸造成範圍傷害",
+      "effect": {
+        "death_explosion": true,
+        "explosion_damage": 100,
+        "explosion_radius": 5
+      },
+      "difficulty_increase": 1.2
+    },
+    {
+      "id": "elite_004",
+      "name": "護盾",
+      "name_en": "Shielded",
+      "description": "擁有額外魔法護盾，可吸收 30% 最大生命的傷害",
+      "effect": {
+        "magic_shield": true,
+        "shield_percent": 30
+      },
+      "difficulty_increase": 1.5
+    },
+    {
+      "id": "elite_005",
+      "name": "分裂",
+      "name_en": "Splitting",
+      "description": "死亡時分裂成 2 隻普通怪物",
+      "effect": {
+        "split_on_death": true,
+        "split_count": 2
+      },
+      "difficulty_increase": 1.6
+    },
+    {
+      "id": "elite_006",
+      "name": "閃電",
+      "name_en": "Lightning",
+      "description": "攻擊時有 15% 機率召喚閃電",
+      "effect": {
+        "lightning_strike": true,
+        "chance": 15,
+        "damage": 50
+      },
+      "difficulty_increase": 1.25
+    },
+    {
+      "id": "elite_007",
+      "name": "隱形",
+      "name_en": "Invisible",
+      "description": "戰鬥開始時隱身 5 秒",
+      "effect": {
+        "initial_invisibility": true,
+        "duration": 5
+      },
+      "difficulty_increase": 1.35
+    },
+    {
+      "id": "elite_008",
+      "name": "自療",
+      "name_en": "Regeneration",
+      "description": "每秒恢復 2% 最大生命",
+      "effect": {
+        "regeneration": true,
+        "regen_percent": 2
+      },
+      "difficulty_increase": 1.4
+    }
+  ]
+}
