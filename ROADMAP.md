@@ -27,7 +27,7 @@
 |:----:|:----:|------|------|
 | 5 | [x] | `CDD/art-requirements/hero-models.md` | 英雄 3D 模型規格 |
 | 6 | [x] | `CDD/art-requirements/operator-models.md` | 幹員 3D 模型規格 |
-| 7 | [ ] | `CDD/art-requirements/ui-layout.md` | UI 介面佈局規格 |
+| 7 | [x] | `CDD/art-requirements/ui-layout.md` | UI 介面佈局規格 |
 
 ---
 
