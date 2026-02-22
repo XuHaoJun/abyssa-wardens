@@ -19,7 +19,7 @@
 ### 1.2 幹員設計 (operators/)
 | 順序 | 狀態 | 檔案 | 說明 |
 |:----:|:----:|------|------|
-| 3 | [ ] | `CDD/operators/operator-list.md` | 12 種幹員清單與分類 |
+| 3 | [x] | `CDD/operators/operator-list.md` | 12 種幹員清單與分類 |
 | 4 | [ ] | `CDD/operators/operators-detail.md` | 每種幹員的詳細設計 |
 
 ### 1.3 美術需求 (art-requirements/)
