@@ -54,7 +54,7 @@
 ### 2.3 天賦與敵人 (talents / enemies)
 | 順序 | 狀態 | 檔案 | 說明 |
 |:----:|:----:|------|------|
-| 14 | [ ] | `balance/talents/constellation.json` | 星盤天賦節點數據 |
+| 14 | [x] | `balance/talents/constellation.json` | 星盤天賦節點數據 |
 | 15 | [ ] | `balance/enemies/base.json` | 10 種基礎敵人數據 |
 | 16 | [ ] | `balance/enemies/elites.json` | 5 種精英詞綴數據 |
 | 17 | [ ] | `balance/drops/drop-table.json` | 掉落率權重配置 |

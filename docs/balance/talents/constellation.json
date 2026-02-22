@@ -1,0 +1,174 @@
+{
+  "constellation": {
+    "name": "靈樞星盤",
+    "name_en": "Arcane Constellation",
+    "description": "英雄與幹員共鳴的終極天賦系統",
+    "layers": [
+      {
+        "layer": 1,
+        "name": "星塵節點",
+        "name_en": "Stardust Nodes",
+        "description": "基礎屬性強化"
+      },
+      {
+        "layer": 2,
+        "name": "星軌節點",
+        "name_en": "Orbital Nodes",
+        "description": "流派強化"
+      },
+      {
+        "layer": 3,
+        "name": "核心星骸",
+        "name_en": "Core Fragments",
+        "description": "規則改變者 (Keystones)"
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node_001",
+      "name": "生命力",
+      "name_en": "Vitality",
+      "layer": 1,
+      "type": "passive",
+      "effects": {
+        "hero": { "max_life_percent": 5 },
+        "operator": { "inheritance_percent": 5 }
+      },
+      "position": { "x": 0, "y": 0 },
+      "cost": 1
+    },
+    {
+      "id": "node_002",
+      "name": "攻擊力",
+      "name_en": "Attack Power",
+      "layer": 1,
+      "type": "passive",
+      "effects": {
+        "hero": { "flat_damage": 8 },
+        "operator": { "atk_percent": 5 }
+      },
+      "position": { "x": 2, "y": 0 },
+      "cost": 1
+    },
+    {
+      "id": "node_003",
+      "name": "移動速度",
+      "name_en": "Movement Speed",
+      "layer": 1,
+      "type": "passive",
+      "effects": {
+        "hero": { "move_speed": 3 }
+      },
+      "position": { "x": 4, "y": 0 },
+      "cost": 1
+    },
+    {
+      "id": "node_004",
+      "name": "護甲強化",
+      "name_en": "Armor Boost",
+      "layer": 1,
+      "type": "passive",
+      "effects": {
+        "hero": { "armor": 15 },
+        "operator": { "def_percent": 8 }
+      },
+      "position": { "x": 1, "y": 1 },
+      "cost": 1
+    },
+    {
+      "id": "node_005",
+      "name": "部署效率",
+      "name_en": "Deployment Efficiency",
+      "layer": 1,
+      "type": "passive",
+      "effects": {
+        "operator": { "deploy_cost_reduction": 2 }
+      },
+      "position": { "x": 3, "y": 1 },
+      "cost": 1
+    },
+    {
+      "id": "node_101",
+      "name": "近戰阻擋流",
+      "name_en": "Melee Blockade",
+      "layer": 2,
+      "type": "passive",
+      "effects": {
+        "operator": { "block_damage_reduction": 15 }
+      },
+      "description": "所有擁有阻擋數大於 2 的幹員，受到的傷害降低 15%",
+      "position": { "x": 1, "y": 3 },
+      "cost": 2
+    },
+    {
+      "id": "node_102",
+      "name": "法術爆發流",
+      "name_en": "Spellburst",
+      "layer": 2,
+      "type": "passive",
+      "effects": {
+        "skill_damage": 20
+      },
+      "description": "英雄與幹員施放『元素類』寶石技能時，有 20% 機率造成雙倍傷害",
+      "position": { "x": 3, "y": 3 },
+      "cost": 2
+    },
+    {
+      "id": "node_103",
+      "name": "遠程狙擊流",
+      "name_en": "Ranger's Mark",
+      "layer": 2,
+      "type": "passive",
+      "effects": {
+        "operator_range_bonus": 10,
+        "crit_damage": 15
+      },
+      "description": "所有高台幹員攻擊範圍 +10%，暴擊傷害 +15%",
+      "position": { "x": 2, "y": 4 },
+      "cost": 2
+    },
+    {
+      "id": "node_301",
+      "name": "孤狼無雙",
+      "name_en": "Lone Wolf",
+      "layer": 3,
+      "type": "keystone",
+      "effects": {
+        "hero": { "all_stats_percent": 150 },
+        "operator": { "deploy_limit": 0 }
+      },
+      "description": "你的『幹員部署上限』強制變為 0（你無法在地圖上蓋任何塔）。英雄本體的全屬性提升 150%",
+      "position": { "x": 0, "y": 6 },
+      "cost": 3
+    },
+    {
+      "id": "node_302",
+      "name": "統帥威儀",
+      "name_en": "Supreme Commander",
+      "layer": 3,
+      "type": "keystone",
+      "effects": {
+        "hero": { "move_speed_percent": -50 },
+        "operator": { "deploy_limit": 2, "inheritance_percent": 30, "range_percent": 30 }
+      },
+      "description": "英雄本體無法進行普通攻擊，且移動速度永久降低 50%。幹員部署上限 +2，所有已部署的幹員，完全繼承英雄的護甲、抗性與生命回復，且攻擊範圍擴大 30%",
+      "position": { "x": 2, "y": 6 },
+      "cost": 3
+    },
+    {
+      "id": "node_303",
+      "name": "玉石俱焚",
+      "name_en": "Martyr's Resonance",
+      "layer": 3,
+      "type": "keystone",
+      "effects": {
+        "operator": { "deploy_cost_reduction": 50 },
+        "on_death_trigger": true
+      },
+      "description": "幹員部署費用減半，但部署後每秒流失 10% 最大生命值（10秒後必定陣亡）。當幹員陣亡或被強制撤退時，會以自身為中心，無消耗觸發一次英雄身上所有相連的『攻擊型寶石技能』（傷害翻倍）",
+      "position": { "x": 4, "y": 6 },
+      "cost": 3
+    }
+  ]
+}
