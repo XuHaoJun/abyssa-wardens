@@ -1,0 +1,204 @@
+{
+  "legendaries": [
+    {
+      "id": "uniq_001",
+      "name": "共生之冠",
+      "name_en": "Crown of Symbiosis",
+      "slot": "helm",
+      "type": "legendary",
+      "description": "你每部署一名高台幹員，英雄本體的攻擊速度提升 15%。當英雄使用位移技能時，所有已部署的近戰幹員會朝英雄的方向發射一道衝擊波。",
+      "mechanic": "deploy_synergy",
+      "stats": { "life": 80, "crit_chance": 5 }
+    },
+    {
+      "id": "uniq_002",
+      "name": "深淵行者之靴",
+      "name_en": "Boots of the Abyssal Walker",
+      "slot": "boots",
+      "type": "legendary",
+     插在此裝備 "description": "上的幹員部署費用 -30%",
+      "mechanic": "cost_reduction",
+      "stats": { "move_speed": 15, "evasion": 20 }
+    },
+    {
+      "id": "uniq_003",
+      "name": "莫拉斯的斷角",
+      "name_en": "Morath's Horn Shard",
+      "slot": "helm",
+      "type": "legendary",
+      "description": "你的「召喚石（幹員）」部署上限 +1。當你的英雄受到致命傷害時不會死亡，而是隨機獻祭場上的一名幹員來恢復 100% 生命值（冷卻時間 120 秒）",
+      "mechanic": "sacrifice_protection",
+      "stats": { "armor": 30, "resist": 15 }
+    },
+    {
+      "id": "uniq_004",
+      "name": "星隕腰帶",
+      "name_en": "Meteorite Belt",
+      "slot": "belt",
+      "type": "legendary",
+      "description": "所有範圍技能 +20% 範圍",
+      "mechanic": "area_boost",
+      "stats": { "life": 120, "armor": 15 }
+    },
+    {
+      "id": "uniq_005",
+      "name": "血月項鏈",
+      "name_en": "Blood Moon Amulet",
+      "slot": "amulet",
+      "type": "legendary",
+      "description": "生命值低於 30% 時，所有技能傷害 +50%",
+      "mechanic": "low_life_bonus",
+      "stats": { "life": 100, "crit_damage": 30 }
+    },
+    {
+      "id": "uniq_006",
+      "name": "虛空碎片",
+      "name_en": "Void Shard",
+      "slot": "weapon",
+      "type": "legendary",
+      "description": "相位轉移冷卻時間 -2 秒",
+      "mechanic": "cooldown_reduction",
+      "stats": { "spell_power": 50, "crit_chance": 8 }
+    },
+    {
+      "id": "uniq_007",
+      "name": "鋼鐵指揮官的鎧甲",
+      "name_en": "Iron Commander's Chestplate",
+      "slot": "chest",
+      "type": "legendary",
+      "description": "每部署一個臨時高台，英雄本體的防禦力提升 10%",
+      "mechanic": "platform_defense",
+      "stats": { "armor": 80, "life": 200 }
+    },
+    {
+      "id": "uniq_008",
+      "name": "疾風雙刃",
+      "name_en": "Twin Blades of Wind",
+      "slot": "weapon",
+      "type": "legendary",
+      "description": "攻擊速度 +30%，但減少 15% 攻擊力",
+      "mechanic": "attack_speed_focus",
+      "stats": { "attack_speed": 30, "flat_damage": -10 }
+    },
+    {
+      "id": "uniq_009",
+      "name": "冰霜護心鏡",
+      "name_en": "Frost Heart Mirror",
+      "slot": "off_hand",
+      "type": "legendary",
+      "description": "周圍敵人移動速度 -15%",
+      "mechanic": "aura_slow",
+      "stats": { "armor": 25, "evasion": 20 }
+    },
+    {
+      "id": "uniq_010",
+      "name": "獵人印記",
+      "name_en": "Hunter's Mark",
+      "slot": "amulet",
+      "type": "legendary",
+      "description": "對 Boss 傷害 +25%",
+      "mechanic": "boss_damage",
+      "stats": { "crit_chance": 10, "crit_damage": 20 }
+    },
+    {
+      "id": "uniq_011",
+      "name": "荊棘之壁",
+      "name_en": "Wall of Thorns",
+      "slot": "chest",
+      "type": "legendary",
+      "description": "反傷效果 +20%",
+      "mechanic": "thorns_boost",
+      "stats": { "armor": 60, "life": 150 }
+    },
+    {
+      "id": "uniq_012",
+      "name": "靈魂虹吸",
+      "name_en": "Soul Siphon",
+      "slot": "weapon",
+      "type": "legendary",
+      "description": "擊殺敵人時有 10% 機率召喚一個幽靈戰士",
+      "mechanic": "on_kill_summon",
+      "stats": { "spell_power": 35, "life_leech": 5 }
+    },
+    {
+      "id": "uniq_013",
+      "name": "星曜祝福",
+      "name_en": "Stellar Blessing",
+      "slot": "amulet",
+      "type": "legendary",
+      "description": "統帥值獲取速度 +25%",
+      "mechanic": "ult_charge",
+      "stats": { "life": 80, "all_resist": 10 }
+    },
+    {
+      "id": "uniq_014",
+      "name": "傳送門核心",
+      "name_en": "Portal Core",
+      "slot": "off_hand",
+      "type": "legendary",
+      "description": "最多同時存在 3 座臨時高台",
+      "mechanic": "platform_limit",
+      "stats": { "energy_shield": 60, "cooldown_reduction": 10 }
+    },
+    {
+      "id": "uniq_015",
+      "name": "燃燒之魂",
+      "name_en": "Burning Soul",
+      "slot": "helm",
+      "type": "legendary",
+      "description": "攻擊時有 20% 機率造成燃燒效果",
+      "mechanic": "ignite_chance",
+      "stats": { "fire_damage": 25, "life": 60 }
+    },
+    {
+      "id": "uniq_016",
+      "name": "守護者之盾",
+      "name_en": "Guardian's Shield",
+      "slot": "off_hand",
+      "type": "legendary",
+      "description": "部署的幹員獲得 +30% 繼承英雄屬性",
+      "mechanic": "inheritance_boost",
+      "stats": { "armor": 40, "block": 15 }
+    },
+    {
+      "id": "uniq_017",
+      "name": "死亡宣告",
+      "name_en": "Death's Declaration",
+      "slot": "weapon",
+      "type": "legendary",
+      "description": "敵人血量低於 20% 時，一擊必殺",
+      "mechanic": "execute",
+      "stats": { "crit_damage": 40, "flat_damage": 20 }
+    },
+    {
+      "id": "uniq_018",
+      "name": "復仇者護腕",
+      "name_en": "Avenger's Vambrace",
+      "slot": "gloves",
+      "type": "legendary",
+      "description": "受到攻擊時反擊造成 50% 傷害",
+      "mechanic": "counter_attack",
+      "stats": { "armor": 20, "attack_speed": 15 }
+    },
+    {
+      "id": "uniq_019",
+      "name": "永恆之戒",
+      "name_en": "Ring of Eternity",
+      "slot": "ring",
+      "type": "legendary",
+      "description": "英雄死亡冷卻時間 -30%",
+      "mechanic": "respawn_reduction",
+      "stats": { "life": 50, "all_resist": 8 }
+    },
+    {
+      "id": "uniq_020",
+      "name": "深淵帝王的皇冠",
+      "name_en": "Crown of the Abyssal Emperor",
+      "slot": "helm",
+      "type": "legendary",
+      "description": "所有詞綴效果 +15%",
+      "mechanic": "affix_boost",
+      "stats": { "life": 150, "all_stats": 10 }
+    }
+  ]
+}
