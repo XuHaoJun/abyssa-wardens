@@ -1,0 +1,169 @@
+{
+  "supports": [
+    {
+      "id": "supp_001",
+      "name": "範圍擴大",
+      "name_en": "Increased Area of Effect",
+      "type": "support",
+      "description": "增加技能範圍",
+      "modifier": {
+        "area_percent": 40
+      },
+      "tags": ["範圍"]
+    },
+    {
+      "id": "supp_002",
+      "name": "高階多重投射",
+      "name_en": "Greater Multiple Projectiles",
+      "type": "support",
+      "description": "增加投射物數量",
+      "modifier": {
+        "projectile_count": 2
+      },
+      "tags": ["投射"]
+    },
+    {
+      "id": "supp_003",
+      "name": "連鎖",
+      "name_en": "Chain",
+      "type": "support",
+      "description": "攻擊時連鎖附近敵人",
+      "modifier": {
+        "chain_count": 3
+      },
+      "tags": ["連鎖"]
+    },
+    {
+      "id": "supp_004",
+      "name": "受擊時施放",
+      "name_en": "Cast on Hit",
+      "type": "support",
+      "description": "攻擊命中時觸發附屬技能",
+      "modifier": {
+        "trigger_chance": 100
+      },
+      "tags": ["觸發"]
+    },
+    {
+      "id": "supp_005",
+      "name": "範圍擴大",
+      "name_en": "Area of Effect",
+      "type": "support",
+      "description": "增加技能範圍",
+      "modifier": {
+        "area_percent": 20
+      },
+      "tags": ["範圍"]
+    },
+    {
+      "id": "supp_006",
+      "name": "快速施放",
+      "name_en": "Fast Casting",
+      "type": "support",
+      "description": "減少技能冷卻時間",
+      "modifier": {
+        "cooldown_reduction": 15
+      },
+      "tags": ["冷卻"]
+    },
+    {
+      "id": "supp_007",
+      "name": "附加火焰傷害",
+      "name_en": "Added Fire Damage",
+      "type": "support",
+      "description": "攻擊時附加火焰傷害",
+      "modifier": {
+        "flat_fire_damage": 10
+      },
+      "tags": ["火焰"]
+    },
+    {
+      "id": "supp_008",
+      "name": "附加冰霜傷害",
+      "name_en": "Added Cold Damage",
+      "type": "support",
+      "description": "攻擊時附加冰霜傷害",
+      "modifier": {
+        "flat_cold_damage": 10
+      },
+      "tags": ["冰霜"]
+    },
+    {
+      "id": "supp_009",
+      "name": "附加閃電傷害",
+      "name_en": "Added Lightning Damage",
+      "type": "support",
+      "description": "攻擊時附加閃電傷害",
+      "modifier": {
+        "flat_lightning_damage": 10
+      },
+      "tags": ["閃電"]
+    },
+    {
+      "id": "supp_010",
+      "name": "暴擊時附帶眩暈",
+      "name_en": "Critical Strikes Cause Stun",
+      "type": "support",
+      "description": "暴擊時眩暈敵人",
+      "modifier": {
+        "stun_duration": 1
+      },
+      "tags": ["控制", "暴擊"]
+    },
+    {
+      "id": "supp_011",
+      "name": "生命偷取",
+      "name_en": "Life Leech",
+      "type": "support",
+      "description": "攻擊時恢復生命",
+      "modifier": {
+        "life_leech_percent": 5
+      },
+      "tags": ["吸血"]
+    },
+    {
+      "id": "supp_012",
+      "name": "護盾穿透",
+      "name_en": "Shield Penetration",
+      "type": "support",
+      "description": "忽視敵人護盾",
+      "modifier": {
+        "shield_penetration": 30
+      },
+      "tags": ["穿透"]
+    },
+    {
+      "id": "supp_013",
+      "name": "致命暴力",
+      "name_en": "Deadly Ailments",
+      "type": "support",
+      "description": "增加暴擊傷害",
+      "modifier": {
+        "crit_multiplier": 20
+      },
+      "tags": ["暴擊"]
+    },
+    {
+      "id": "supp_014",
+      "name": "減速",
+      "name_en": "Slow",
+      "type": "support",
+      "description": "攻擊時減速敵人",
+      "modifier": {
+        "slow_percent": 20
+      },
+      "tags": ["控制", "減速"]
+    },
+    {
+      "id": "supp_015",
+      "name": "集中攻擊",
+      "name_en": "Focused Attack",
+      "type": "support",
+      "description": "增加對單一目標的傷害",
+      "modifier": {
+        "single_target_damage": 25
+      },
+      "tags": ["單體"]
+    }
+  ]
+}
