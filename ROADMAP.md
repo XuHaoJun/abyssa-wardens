@@ -42,7 +42,7 @@
 |:----:|:----:|------|------|
 | 8 | [x] | `balance/gems/skills.json` | 10 顆主動技能石數據 |
 | 9 | [x] | `balance/gems/supports.json` | 15 顆輔助寶石數據 |
-| 10 | [ ] | `balance/gems/operators.json` | 12 種陣地石 (幹員) 數據 |
+| 10 | [x] | `balance/gems/operators.json` | 12 種陣地石 (幹員) 數據 |
 
 ### 2.2 裝備數據 (items/)
 | 順序 | 狀態 | 檔案 | 說明 |

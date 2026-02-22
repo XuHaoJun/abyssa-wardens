@@ -1,0 +1,175 @@
+{
+  "operators": [
+    {
+      "id": "op_001",
+      "name": "盾衛",
+      "name_en": "Shield Guard",
+      "category": "TNK",
+      "rarity": "R",
+      "position": "ground",
+      "block": 3,
+      "stats": {
+        "lv1": { "hp": 1200, "def": 80, "res": 10, "cost": 5, "redeploy": 25 },
+        "lv10": { "hp": 3500, "def": 250, "res": 30, "cost": 6, "redeploy": 23 },
+        "lv20": { "hp": 8000, "def": 600, "res": 80, "cost": 8, "redeploy": 20 }
+      }
+    },
+    {
+      "id": "op_002",
+      "name": "鐵壁",
+      "name_en": "Iron Wall",
+      "category": "TNK",
+      "rarity": "R",
+      "position": "ground",
+      "block": 4,
+      "stats": {
+        "lv1": { "hp": 2000, "def": 120, "res": 15, "cost": 7, "redeploy": 30 },
+        "lv10": { "hp": 5500, "def": 350, "res": 40, "cost": 8, "redeploy": 28 },
+        "lv20": { "hp": 12000, "def": 800, "res": 100, "cost": 10, "redeploy": 25 }
+      }
+    },
+    {
+      "id": "op_003",
+      "name": "荊棘",
+      "name_en": "Thorns",
+      "category": "TNK",
+      "rarity": "L",
+      "position": "ground",
+      "block": 2,
+      "special_ability": "overload_mutation",
+      "stats": {
+        "lv1": { "hp": 800, "def": 50, "res": 20, "cost": 4, "redeploy": 20 },
+        "lv10": { "hp": 2200, "def": 150, "res": 50, "cost": 5, "redeploy": 18 },
+        "lv20": { "hp": 5000, "def": 350, "res": 120, "cost": 6, "redeploy": 15 }
+      }
+    },
+    {
+      "id": "op_004",
+      "name": "劍舞者",
+      "name_en": "Sword Dancer",
+      "category": "MEL",
+      "rarity": "N",
+      "position": "ground",
+      "block": 2,
+      "stats": {
+        "lv1": { "hp": 700, "def": 30, "res": 15, "cost": 4, "redeploy": 18 },
+        "lv10": { "hp": 1900, "def": 90, "res": 40, "cost": 5, "redeploy": 16 },
+        "lv20": { "hp": 4200, "def": 200, "res": 90, "cost": 7, "redeploy": 12 }
+      }
+    },
+    {
+      "id": "op_005",
+      "name": "戰斧",
+      "name_en": "Battle Axe",
+      "category": "MEL",
+      "rarity": "N",
+      "position": "ground",
+      "block": 1,
+      "stats": {
+        "lv1": { "hp": 600, "def": 25, "res": 10, "cost": 5, "redeploy": 22 },
+        "lv10": { "hp": 1600, "def": 70, "res": 30, "cost": 6, "redeploy": 20 },
+        "lv20": { "hp": 3600, "def": 160, "res": 70, "cost": 8, "redeploy": 16 }
+      }
+    },
+    {
+      "id": "op_006",
+      "name": "狙擊手",
+      "name_en": "Sniper",
+      "category": "RNG",
+      "rarity": "N",
+      "position": "highground",
+      "range": 20,
+      "stats": {
+        "lv1": { "hp": 400, "def": 15, "res": 20, "cost": 5, "redeploy": 20 },
+        "lv10": { "hp": 1100, "def": 40, "res": 50, "cost": 6, "redeploy": 18 },
+        "lv20": { "hp": 2400, "def": 90, "res": 120, "cost": 8, "redeploy": 15 }
+      }
+    },
+    {
+      "id": "op_007",
+      "name": "弓騎士",
+      "name_en": "Bow Knight",
+      "category": "RNG",
+      "rarity": "N",
+      "position": "highground",
+      "range": 15,
+      "stats": {
+        "lv1": { "hp": 450, "def": 20, "res": 15, "cost": 4, "redeploy": 16 },
+        "lv10": { "hp": 1200, "def": 50, "res": 40, "cost": 5, "redeploy": 14 },
+        "lv20": { "hp": 2700, "def": 120, "res": 90, "cost": 6, "redeploy": 12 }
+      }
+    },
+    {
+      "id": "op_008",
+      "name": "元素師",
+      "name_en": "Elementalist",
+      "category": "MAG",
+      "rarity": "L",
+      "position": "highground",
+      "range": 12,
+      "special_ability": "innate_support_links",
+      "stats": {
+        "lv1": { "hp": 350, "def": 10, "res": 40, "cost": 5, "redeploy": 22 },
+        "lv10": { "hp": 950, "def": 30, "res": 100, "cost": 6, "redeploy": 20 },
+        "lv20": { "hp": 2100, "def": 70, "res": 230, "cost": 8, "redeploy": 18 }
+      }
+    },
+    {
+      "id": "op_009",
+      "name": "死靈法師",
+      "name_en": "Necromancer",
+      "category": "MAG",
+      "rarity": "N",
+      "position": "highground",
+      "range": 10,
+      "stats": {
+        "lv1": { "hp": 400, "def": 15, "res": 30, "cost": 6, "redeploy": 25 },
+        "lv10": { "hp": 1100, "def": 40, "res": 80, "cost": 7, "redeploy": 23 },
+        "lv20": { "hp": 2400, "def": 90, "res": 180, "cost": 9, "redeploy": 20 }
+      }
+    },
+    {
+      "id": "op_010",
+      "name": "扭曲師",
+      "name_en": "Warp Caster",
+      "category": "MAG",
+      "rarity": "R",
+      "position": "highground",
+      "range": 8,
+      "stats": {
+        "lv1": { "hp": 300, "def": 8, "res": 35, "cost": 5, "redeploy": 18 },
+        "lv10": { "hp": 800, "def": 25, "res": 90, "cost": 6, "redeploy": 16 },
+        "lv20": { "hp": 1800, "def": 60, "res": 200, "cost": 8, "redeploy": 14 }
+      }
+    },
+    {
+      "id": "op_011",
+      "name": "光牧",
+      "name_en": "Light Healer",
+      "category": "SUP",
+      "rarity": "R",
+      "position": "highground",
+      "range": 10,
+      "stats": {
+        "lv1": { "hp": 500, "def": 20, "res": 25, "cost": 4, "redeploy": 20 },
+        "lv10": { "hp": 1400, "def": 50, "res": 70, "cost": 5, "redeploy": 18 },
+        "lv20": { "hp": 3200, "def": 120, "res": 160, "cost": 7, "redeploy": 15 }
+      }
+    },
+    {
+      "id": "op_012",
+      "name": "減速塔",
+      "name_en": "Frost Tower",
+      "category": "SUP",
+      "rarity": "L",
+      "position": "ground",
+      "range": 8,
+      "special_ability": "targeting_mutation",
+      "stats": {
+        "lv1": { "hp": 600, "def": 25, "res": 20, "cost": 3, "redeploy": 15 },
+        "lv10": { "hp": 1600, "def": 70, "res": 50, "cost": 4, "redeploy": 13 },
+        "lv20": { "hp": 3600, "def": 160, "res": 120, "cost": 5, "redeploy": 10 }
+      }
+    }
+  ]
+}
