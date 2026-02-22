@@ -16,7 +16,7 @@
       "name_en": "Boots of the Abyssal Walker",
       "slot": "boots",
       "type": "legendary",
-     插在此裝備 "description": "上的幹員部署費用 -30%",
+      "description": "插在此裝備上的幹員部署費用 -30%",
       "mechanic": "cost_reduction",
       "stats": { "move_speed": 15, "evasion": 20 }
     },
