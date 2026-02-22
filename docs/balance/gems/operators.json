@@ -108,6 +108,10 @@
       "position": "highground",
       "range": 12,
       "special_ability": "innate_support_links",
+      "innate_supports": [
+        "supp_002",
+        "supp_003"
+      ],
       "stats": {
         "lv1": { "hp": 350, "def": 10, "res": 40, "cost": 5, "redeploy": 22 },
         "lv10": { "hp": 950, "def": 30, "res": 100, "cost": 6, "redeploy": 20 },
