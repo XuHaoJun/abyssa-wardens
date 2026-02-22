@@ -1,0 +1,62 @@
+{
+  "drop_table": {
+    "description": "基礎掉落率配置",
+    "sources": [
+      {
+        "source": "normal_monster",
+        "items": [
+          { "type": "gold", "min": 1, "max": 10, "chance": 100 },
+          { "type": "exp", "min": 5, "max": 15, "chance": 100 },
+          { "type": "white_weapon", "chance": 5 },
+          { "type": "white_armor", "chance": 5 },
+          { "type": "skill_shard", "chance": 3 },
+          { "type": "support_shard", "chance": 2 }
+        ]
+      },
+      {
+        "source": "elite_monster",
+        "items": [
+          { "type": "gold", "min": 20, "max": 50, "chance": 100 },
+          { "type": "exp", "min": 30, "max": 80, "chance": 100 },
+          { "type": "blue_weapon", "chance": 15 },
+          { "type": "blue_armor", "chance": 15 },
+          { "type": "blue_operator", "chance": 10 },
+          { "type": "skill_gem", "chance": 8 },
+          { "type": "support_gem", "chance": 5 }
+        ]
+      },
+      {
+        "source": "boss",
+        "items": [
+          { "type": "gold", "min": 200, "max": 500, "chance": 100 },
+          { "type": "exp", "min": 500, "max": 1000, "chance": 100 },
+          { "type": "legendary_item", "chance": 20 },
+          { "type": "legendary_operator", "chance": 15 },
+          { "type": "skill_gem", "chance": 50 },
+          { "type": "support_gem", "chance": 30 },
+          { "type": "map_scroll", "chance": 100 }
+        ]
+      },
+      {
+        "source": "treasure_chest",
+        "items": [
+          { "type": "gold", "min": 50, "max": 200, "chance": 100 },
+          { "type": "blue_item", "chance": 40 },
+          { "type": "purple_item", "chance": 15 },
+          { "type": "legendary_item", "chance": 5 },
+          { "type": "operator_token", "chance": 20 }
+        ]
+      }
+    ],
+    "rarity_weights": {
+      "normal": { "white": 70, "blue": 25, "purple": 5, "gold": 0 },
+      "elite": { "white": 20, "blue": 50, "purple": 25, "gold": 5 },
+      "boss": { "white": 0, "blue": 30, "purple": 50, "gold": 20 }
+    },
+    "currency_drops": {
+      "chaos_orb": { "min": 1, "max": 3, "chance": 10 },
+      "exalted_orb": { "min": 1, "max": 1, "chance": 1 },
+      "armor_scrap": { "min": 1, "max": 5, "chance": 30 }
+    }
+  }
+}
