@@ -48,7 +48,7 @@
 | 順序 | 狀態 | 檔案 | 說明 |
 |:----:|:----:|------|------|
 | 11 | [x] | `balance/items/weapons.json` | 武器基礎屬性與詞綴池 |
-| 12 | [ ] | `balance/items/armors.json` | 防具基礎屬性與詞綴池 |
+| 12 | [x] | `balance/items/armors.json` | 防具基礎屬性與詞綴池 |
 | 13 | [ ] | `balance/items/legendaries.json` | 20 件傳奇裝備設計 |
 
 ### 2.3 天賦與敵人 (talents / enemies)

@@ -1,0 +1,108 @@
+{
+  "base_types": [
+    {
+      "id": "armor_001",
+      "name": "皮甲",
+      "name_en": "Leather Armor",
+      "type": "light",
+      "slots": 4,
+      "stats": {
+        "armor": 20,
+        "evasion": 50
+      }
+    },
+    {
+      "id": "armor_002",
+      "name": "鎖甲",
+      "name_en": "Chainmail",
+      "type": "medium",
+      "slots": 4,
+      "stats": {
+        "armor": 40,
+        "evasion": 20
+      }
+    },
+    {
+      "id": "armor_003",
+      "name": "板甲",
+      "name_en": "Plate Armor",
+      "type": "heavy",
+      "slots": 4,
+      "stats": {
+        "armor": 80,
+        "evasion": 5
+      }
+    },
+    {
+      "id": "armor_004",
+      "name": "法袍",
+      "name_en": "Robes",
+      "type": "caster",
+      "slots": 4,
+      "stats": {
+        "armor": 10,
+        "energy_shield": 30
+      }
+    }
+  ],
+  "helmet_base_types": [
+    {
+      "id": "helm_001",
+      "name": "皮帽",
+      "name_en": "Leather Cap",
+      "slots": 4,
+      "stats": { "armor": 8, "evasion": 15 }
+    },
+    {
+      "id": "helm_002",
+      "name": "頭盔",
+      "name_en": "Helmet",
+      "slots": 4,
+      "stats": { "armor": 20, "evasion": 5 }
+    }
+  ],
+  "gloves_base_types": [
+    {
+      "id": "gloves_001",
+      "name": "皮手套",
+      "name_en": "Leather Gloves",
+      "slots": 4,
+      "stats": { "armor": 8, "evasion": 10 }
+    },
+    {
+      "id": "gloves_002",
+      "name": "鐵手套",
+      "name_en": "Iron Gauntlets",
+      "slots": 4,
+      "stats": { "armor": 18, "evasion": 3 }
+    }
+  ],
+  "boots_base_types": [
+    {
+      "id": "boots_001",
+      "name": "皮靴",
+      "name_en": "Leather Boots",
+      "slots": 4,
+      "stats": { "armor": 8, "evasion": 15, "move_speed": 3 }
+    },
+    {
+      "id": "boots_002",
+      "name": "鐵靴",
+      "name_en": "Iron Boots",
+      "slots": 4,
+      "stats": { "armor": 18, "move_speed": 2 }
+    }
+  ],
+  "affix_pool": [
+    { "id": "affix_101", "name": "生命", "type": "flat_life", "min": 30, "max": 80 },
+    { "id": "affix_102", "name": "護甲", "type": "armor", "min": 10, "max": 25 },
+    { "id": "affix_103", "name": "閃避", "type": "evasion", "min": 10, "max": 30 },
+    { "id": "affix_104", "name": "元素抗性", "type": "resist", "min": 5, "max": 15 },
+    { "id": "affix_105", "name": "能量護盾", "type": "energy_shield", "min": 20, "max": 50 },
+    { "id": "affix_106", "name": "生命回復", "type": "life_regen", "min": 1, "max": 3 },
+    { "id": "affix_107", "name": "移動速度", "type": "move_speed", "min": 2, "max": 5 },
+    { "id": "affix_108", "name": "Deploy Cost", "type": "deploy_cost", "min": -1, "max": -2 },
+    { "id": "affix_109", "name": "再部署時間", "type": "redeploy_time", "min": -2, "max": -5 },
+    { "id": "affix_110", "name": "阻擋數", "type": "block", "min": 1, "max": 1 }
+  ]
+}
