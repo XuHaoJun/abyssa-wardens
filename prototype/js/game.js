@@ -1,5 +1,5 @@
 // Abyssal Wardens 原型 - Phaser.js
-// 核心游戏逻辑
+// 純滑鼠操作版本
 
 const CONFIG = {
     width: 800,
@@ -47,7 +47,9 @@ class MainScene extends Phaser.Scene {
             heroHp: 100,
             maxHeroHp: 100,
             heroCooldown: 0,
-            isGameOver: false
+            isGameOver: false,
+            heroTargetX: null,
+            heroTargetY: null
         };
 
         // 绘制背景
@@ -73,15 +75,14 @@ class MainScene extends Phaser.Scene {
             loop: true
         });
         
-        // 玩家输入
+        // 纯鼠标输入
         this.input.on('pointerdown', this.handleClick, this);
-        this.cursors = this.input.keyboard.createCursorKeys();
     }
 
     update(time, delta) {
         if (this.gameState.isGameOver) return;
 
-        // 英雄移动
+        // 英雄移动 (点击移动)
         this.updateHero(delta);
         
         // 英雄攻击冷却
@@ -148,7 +149,7 @@ class MainScene extends Phaser.Scene {
             this.deployPointGraphics.push(rect);
             
             // 文字标签
-            const label = point.type === '高台' ? '高' : '平';
+            const label = point.type === 'highground' ? '高' : '平';
             this.add.text(point.x - 10, point.y - 5, label, { fontSize: '12px', color: '#ffffff' });
         }
     }
@@ -164,11 +165,19 @@ class MainScene extends Phaser.Scene {
         
         // 英雄血条
         this.heroHpBar = this.add.rectangle(start.x * CONFIG.tileSize, start.y - 35, 40, 6, 0x00ff00);
+        
+        // 目标点标记
+        this.targetMarker = this.add.circle(start.x * CONFIG.tileSize, start.y, 8, 0xffff00, 0.5);
+        this.targetMarker.setVisible(false);
+        
+        // 初始目标位置
+        this.gameState.heroTargetX = start.x * CONFIG.tileSize;
+        this.gameState.heroTargetY = start.y;
     }
 
     createUI() {
         // 金币
-        this.goldText = this.add.text(20, 20, `💰 金幣: ${this.gameState.gold}`, { 
+        this.goldText = this.add.text(20, 20, '金: 100', { 
             fontSize: '18px', 
             color: '#ffd700',
             backgroundColor: '#00000088',
@@ -176,7 +185,7 @@ class MainScene extends Phaser.Scene {
         });
         
         // 部署点数
-        this.costText = this.add.text(20, 50, `⚡ 部署點數: ${this.gameState.cost}`, { 
+        this.costText = this.add.text(20, 50, '點: 5', { 
             fontSize: '18px', 
             color: '#4ecdc4',
             backgroundColor: '#00000088',
@@ -184,7 +193,7 @@ class MainScene extends Phaser.Scene {
         });
         
         // 波次
-        this.waveText = this.add.text(20, 80, `🌊 波次: ${this.gameState.wave}`, { 
+        this.waveText = this.add.text(20, 80, '波: 1', { 
             fontSize: '18px', 
             color: '#ffffff',
             backgroundColor: '#00000088',
@@ -192,39 +201,48 @@ class MainScene extends Phaser.Scene {
         });
         
         // 基地血量
-        this.baseHpText = this.add.text(650, 20, `❤️ 基地: ${this.gameState.baseHp}/${this.gameState.maxBaseHp}`, { 
+        this.baseHpText = this.add.text(650, 20, '基: 10/10', { 
             fontSize: '18px', 
             color: '#ff0000',
             backgroundColor: '#00000088',
             padding: { x: 10, y: 5 }
         });
         
-        // 部署提示
-        this.add.text(20, 550, '點擊部署點放置【塔】 | WASD移動 | 點擊敵人攻擊', { 
-            fontSize: '14px', 
+        // 操作提示
+        this.add.text(20, 550, '左鍵點擊地面:英雄移動 | 點擊部署點:放塔 | 點擊敵人:攻擊', { 
+            fontSize: '12px', 
             color: '#888888' 
         });
     }
 
     updateUI() {
-        this.goldText.setText(`💰 金幣: ${this.gameState.gold}`);
-        this.costText.setText(`⚡ 部署點數: ${this.gameState.cost}`);
-        this.waveText.setText(`🌊 波次: ${this.gameState.wave}`);
-        this.baseHpText.setText(`❤️ 基地: ${this.gameState.baseHp}/${this.gameState.maxBaseHp}`);
+        this.goldText.setText(`金: ${this.gameState.gold}`);
+        this.costText.setText(`點: ${this.gameState.cost}`);
+        this.waveText.setText(`波: ${this.gameState.wave}`);
+        this.baseHpText.setText(`基: ${this.gameState.baseHp}/${this.gameState.maxBaseHp}`);
     }
 
     updateHero(delta) {
-        const speed = 200;
-        let dx = 0, dy = 0;
+        const speed = 150;
         
-        if (this.cursors.left.isDown) dx = -1;
-        if (this.cursors.right.isDown) dx = 1;
-        if (this.cursors.up.isDown) dy = -1;
-        if (this.cursors.down.isDown) dy = 1;
-        
-        if (dx !== 0 || dy !== 0) {
-            this.hero.x += dx * speed * delta / 1000;
-            this.hero.y += dy * speed * delta / 1000;
+        // 如果有目标位置，移动过去
+        if (this.gameState.heroTargetX !== null) {
+            const dx = this.gameState.heroTargetX - this.hero.x;
+            const dy = this.gameState.heroTargetY - this.hero.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < 5) {
+                // 到达目标
+                this.gameState.heroTargetX = null;
+                this.gameState.heroTargetY = null;
+                this.targetMarker.setVisible(false);
+            } else {
+                // 移动
+                this.hero.x += (dx / dist) * speed * delta / 1000;
+                this.hero.y += (dy / dist) * speed * delta / 1000;
+            }
+            
+            // 更新UI位置
             this.heroText.x = this.hero.x - 15;
             this.heroText.y = this.hero.y - 5;
             this.heroHpBar.x = this.hero.x;
@@ -257,16 +275,26 @@ class MainScene extends Phaser.Scene {
                 return;
             }
         }
+        
+        // 否则设置为移动目标
+        this.gameState.heroTargetX = pointer.x;
+        this.gameState.heroTargetY = pointer.y;
+        this.targetMarker.x = pointer.x;
+        this.targetMarker.y = pointer.y;
+        this.targetMarker.setVisible(true);
+        
+        // 显示移动提示
+        this.showMessage('移動', pointer.x, pointer.y - 20, '#ffff00');
     }
 
     deployTower(pointData, index) {
         if (this.gameState.cost < 5) {
-            this.showMessage('部署點數不足!', pointData.x, pointData.y - 30);
+            this.showMessage('點數不足!', pointData.x, pointData.y - 30, '#ff0000');
             return;
         }
         
         if (this.gameState.towers[index]) {
-            this.showMessage('已有塔!', pointData.x, pointData.y - 30);
+            this.showMessage('已有塔!', pointData.x, pointData.y - 30, '#ff8800');
             return;
         }
         
@@ -292,7 +320,7 @@ class MainScene extends Phaser.Scene {
         // 塔攻击范围显示
         tower.rangeGraphic = this.add.circle(pointData.x, pointData.y, tower.range, 0x4ecdc4, 0.1);
         
-        this.showMessage('塔已部署!', pointData.x, pointData.y - 30);
+        this.showMessage('塔!', pointData.x, pointData.y - 30, '#4ecdc4');
     }
 
     heroAttack(enemy) {
@@ -442,12 +470,12 @@ class MainScene extends Phaser.Scene {
             this.gameState.gold += enemy.reward;
             this.gameState.cost += 2;
             this.gameState.exp += 10;
-            this.showMessage(`+${enemy.reward}💰`, enemy.sprite.x, enemy.sprite.y - 30, '#ffd700');
+            this.showMessage(`+${enemy.reward}`, enemy.sprite.x, enemy.sprite.y - 30, '#ffd700');
             
             // 击杀升级波次
             if (this.gameState.exp >= this.gameState.wave * 50) {
                 this.gameState.wave++;
-                this.showMessage(`🌊 波次 ${this.gameState.wave}!`, 400, 100, '#4ecdc4');
+                this.showMessage(`波 ${this.gameState.wave}!`, 400, 100, '#4ecdc4');
             }
         }
         
@@ -509,7 +537,7 @@ class MainScene extends Phaser.Scene {
             fontStyle: 'bold' 
         }).setOrigin(0.5);
         
-        this.add.text(400, 320, `到達波次: ${this.gameState.wave}`, { 
+        this.add.text(400, 320, `波次: ${this.gameState.wave}`, { 
             fontSize: '18px', 
             color: '#ffffff' 
         }).setOrigin(0.5);
