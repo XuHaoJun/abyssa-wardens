@@ -56,15 +56,15 @@ class MainScene extends Phaser.Scene {
         this.equipment=new EquipmentSystem();this.astar=new AStar();this.astar.obstacles=[{x:5,y:7},{x:6,y:7},{x:7,y:7}];
         this.hero={hp:100,maxHp:100,x:80,y:300,speed:150,skills:{basic:{dmg:30,cd:500,range:80},dash:{dmg:20,cd:3000,dist:120,ready:true,lastUsed:0},ultimate:{dmg:200,cd:15000,range:150,ready:true,charge:0,max:100,lastUsed:0}},isDashing:false,targetPath:[],pathIndex:0};
         this.deploymentPoints=5;
-        this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false};
+        this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false,isPaused:false};
         this.waveConfig={current:1,enemiesPerWave:5,enemiesSpawned:0,isBreak:false,breakTime:5000};
-        this.keys={};[Phaser.Input.Keyboard.KeyCodes.Q,Phaser.Input.Keyboard.KeyCodes.E,Phaser.Input.Keyboard.KeyCodes.R,Phaser.Input.Keyboard.KeyCodes.ONE,Phaser.Input.Keyboard.KeyCodes.TWO,Phaser.Input.Keyboard.KeyCodes.THREE,Phaser.Input.Keyboard.KeyCodes.FOUR,Phaser.Input.Keyboard.KeyCodes.FIVE,Phaser.Input.Keyboard.KeyCodes.SPACE].forEach(k=>{this.keys[k]=this.input.keyboard.addKey(k);});
+        this.keys={};[Phaser.Input.Keyboard.KeyCodes.Q,Phaser.Input.Keyboard.KeyCodes.E,Phaser.Input.Keyboard.KeyCodes.R,Phaser.Input.Keyboard.KeyCodes.ONE,Phaser.Input.Keyboard.KeyCodes.TWO,Phaser.Input.Keyboard.KeyCodes.THREE,Phaser.Input.Keyboard.KeyCodes.FOUR,Phaser.Input.Keyboard.KeyCodes.FIVE,Phaser.Input.Keyboard.KeyCodes.SPACE,Phaser.Input.Keyboard.KeyCodes.ESC].forEach(k=>{this.keys[k]=this.input.keyboard.addKey(k);});
         this.selectedOpType='OP_TNK';this.heroGemSkillIndex=0;
-        this.drawBackground();this.drawPath();this.drawDeployPoints();this.drawObstacles();this.createHero();this.createUI();this.createSkillBar();this.createGemUI();this.createWaveUI();
+        this.drawBackground();this.drawPath();this.drawDeployPoints();this.drawObstacles();this.createHero();this.createUI();this.createSkillBar();this.createGemUI();this.createWaveUI();this.createPauseMenu();
         this.spawnTimer=this.time.addEvent({delay:2000,callback:this.spawnEnemy,callbackScope:this,loop:true});
         this.input.on('pointerdown',this.handleClick,this);this.input.mouse.disableContextMenu();
     }
-    update(time,delta){if(this.gameState.isGameOver)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();}
+    update(time,delta){if(this.gameState.isGameOver||this.gameState.isPaused)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();if(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]))this.togglePause();}
     drawBackground(){this.add.grid(400,300,800,600,CONFIG.tileSize,CONFIG.tileSize,0x1a1a2e,0.5,0x2a2a4e,0.3);}
     drawPath(){
         this.pathPoints=[{x:0,y:7},{x:4,y:7},{x:4,y:3},{x:10,y:3},{x:10,y:11},{x:15,y:11},{x:15,y:7},{x:20,y:7}];
@@ -92,6 +92,15 @@ class MainScene extends Phaser.Scene {
         this.add.text(20,550,'左:移動/部署|右:撤退|1-5:選|SPACE:技能',{fontSize:'11px',color:'#888'});
     }
     createWaveUI(){this.waveInfoText=this.add.text(650,50,'敵:0/5',{fontSize:'14px',color:'#fff',backgroundColor:'#0008',padding:{x:5,y:3}});this.nextWaveText=this.add.text(400,300,'',{fontSize:'28px',color:'#4ecdc4',fontStyle:'bold',stroke:'#000',strokeThickness:4}).setOrigin(0.5).setVisible(false);}
+    createPauseMenu(){
+        this.pauseMenuBg=this.add.rectangle(400,300,400,300,0x000,0.9).setVisible(false).setDepth(100);
+        this.pauseTitle=this.add.text(400,200,'⏸ 遊戲暫停',{fontSize:'32px',color:'#fff',fontStyle:'bold'}).setOrigin(0.5).setVisible(false).setDepth(101);
+        this.resumeBtn=this.add.text(400,280,'▶ 繼續',{fontSize:'20px',color:'#4ecdc4',backgroundColor:'#333',padding:{x:20,y:10}}).setOrigin(0.5).setVisible(false).setDepth(101).setInteractive();
+        this.resumeBtn.on('pointerdown',()=>this.togglePause());
+        this.restartBtn=this.add.text(400,340,'🔄 重新開始',{fontSize:'20px',color:'#ff6b35',backgroundColor:'#333',padding:{x:20,y:10}}).setOrigin(0.5).setVisible(false).setDepth(101).setInteractive();
+        this.restartBtn.on('pointerdown',()=>this.scene.restart());
+    }
+    togglePause(){this.gameState.isPaused=!this.gameState.isPaused;this.pauseMenuBg.setVisible(this.gameState.isPaused);this.pauseTitle.setVisible(this.gameState.isPaused);this.resumeBtn.setVisible(this.gameState.isPaused);this.restartBtn.setVisible(this.gameState.isPaused);}
     createSkillBar(){
         const barY=560,barX=600;
         this.skillQ=this.add.rectangle(barX,barY,36,36,0x4ecdc4).setStrokeStyle(2,'#0f0');
