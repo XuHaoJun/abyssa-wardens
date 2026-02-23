@@ -56,7 +56,7 @@ class MainScene extends Phaser.Scene {
         this.equipment=new EquipmentSystem();this.astar=new AStar();this.astar.obstacles=[{x:5,y:7},{x:6,y:7},{x:7,y:7}];
         this.hero={hp:100,maxHp:100,x:80,y:300,speed:150,skills:{basic:{dmg:30,cd:500,range:80},dash:{dmg:20,cd:3000,dist:120,ready:true,lastUsed:0},ultimate:{dmg:200,cd:15000,range:150,ready:true,charge:0,max:100,lastUsed:0}},isDashing:false,targetPath:[],pathIndex:0};
         this.deploymentPoints=5;
-        this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false,isPaused:false};
+        this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false,isPaused:false,inventory:[]};
         this.waveConfig={current:1,enemiesPerWave:5,enemiesSpawned:0,isBreak:false,breakTime:5000};
         this.keys={};[Phaser.Input.Keyboard.KeyCodes.Q,Phaser.Input.Keyboard.KeyCodes.E,Phaser.Input.Keyboard.KeyCodes.R,Phaser.Input.Keyboard.KeyCodes.ONE,Phaser.Input.Keyboard.KeyCodes.TWO,Phaser.Input.Keyboard.KeyCodes.THREE,Phaser.Input.Keyboard.KeyCodes.FOUR,Phaser.Input.Keyboard.KeyCodes.FIVE,Phaser.Input.Keyboard.KeyCodes.SPACE,Phaser.Input.Keyboard.KeyCodes.ESC].forEach(k=>{this.keys[k]=this.input.keyboard.addKey(k);});
         this.selectedOpType='OP_TNK';this.heroGemSkillIndex=0;
@@ -232,13 +232,15 @@ class MainScene extends Phaser.Scene {
     }
     killEnemy(e,r){
         if(e.isElite&&e.affix&&e.affix.name==='火'){for(const other of this.gameState.enemies){if(other===e)continue;const d=Phaser.Math.Distance.Between(e.sprite.x,e.sprite.y,other.sprite.x,other.sprite.y);if(d<e.affix.range){other.hp-=e.affix.dmg;this.showDamage(other.sprite.x,other.sprite.y-20,e.affix.dmg);if(other.hp<=0&&!other.dead){other.dead=true;this.killEnemy(other,true);}}}}
-        if(r){this.gameState.gold+=e.reward;this.deploymentPoints+=2;this.gameState.exp+=10;this.showMessage(`+${e.reward}`,e.sprite.x,e.sprite.y-30,'#fd0');}
+        if(r){this.gameState.gold+=e.reward;this.deploymentPoints+=2;this.gameState.exp+=10;
+            if(Math.random()<0.3){const items=['⚔️武','🛡️防','💎寶'];const item=items[Math.floor(Math.random()*items.length)];this.gameState.inventory.push(item);this.showMessage('+'+item,e.sprite.x,e.sprite.y-50,'#00ffff');}
+            this.showMessage('+'+e.reward,e.sprite.x,e.sprite.y-30,'#fd0');}
         e.sprite.destroy();e.text.destroy();const idx=this.gameState.enemies.indexOf(e);if(idx>-1)this.gameState.enemies.splice(idx,1);
     }
     updateUI(){this.goldText.setText(`金:${this.gameState.gold}`);this.costText.setText(`點:${this.deploymentPoints}`);this.waveText.setText(`波:${this.waveConfig.current}`);this.baseHpText.setText(`基:${this.gameState.baseHp}/10`);this.waveInfoText.setText(`敵:${this.waveConfig.enemiesSpawned}/${this.waveConfig.enemiesPerWave}`);}
     showDamage(x,y,t){const dmg=this.add.text(x,y,`-${t}`,{fontSize:'16px',color:'#f00',fontStyle:'bold'});this.tweens.add({targets:dmg,y:y-30,alpha:0,duration:500,onComplete:()=>dmg.destroy()});}
     showMessage(text,x,y,color='#fff'){const msg=this.add.text(x,y,text,{fontSize:'16px',color:color,fontStyle:'bold',stroke:'#000',strokeThickness:3});this.tweens.add({targets:msg,y:y-30,alpha:0,duration:1000,onComplete:()=>msg.destroy()});}
-    gameOver(){this.gameState.isGameOver=true;this.add.rectangle(400,300,400,200,0x000,0.8);this.add.text(400,260,'遊戲結束',{fontSize:'32px',color:'#f00',fontStyle:'bold'}).setOrigin(0.5);this.add.text(400,320,`波次:${this.waveConfig.current}`,{fontSize:'18px',color:'#fff'}).setOrigin(0.5);this.add.text(400,370,'點擊重新開始',{fontSize:'16px',color:'#4ecdc4',backgroundColor:'#333',padding:{x:10,y:5}}).setOrigin(0.5).setInteractive().on('pointerdown',()=>this.scene.restart());}
+    gameOver(){this.gameState.isGameOver=true;this.add.rectangle(400,300,400,280,0x000,0.9);this.add.text(400,180,'💀遊戲結束',{fontSize:'36px',color:'#f00',fontStyle:'bold'}).setOrigin(0.5);this.add.text(400,240,'🌊波次:'+this.waveConfig.current,{fontSize:'18px',color:'#fff'}).setOrigin(0.5);this.add.text(400,280,'💰金幣:'+this.gameState.gold,{fontSize:'18px',color:'#fd0'}).setOrigin(0.5);this.add.text(400,320,'🎒掉落:'+(this.gameState.inventory.length>0?this.gameState.inventory.join(' '):'無'),{fontSize:'14px',color:'#00ffff'}).setOrigin(0.5);this.add.text(400,400,'點擊重新開始',{fontSize:'20px',color:'#4ecdc4',backgroundColor:'#333',padding:{x:20,y:10}}).setOrigin(0.5).setInteractive().on('pointerdown',()=>this.scene.restart());}
 }
 const config={type:Phaser.AUTO,width:800,height:600,parent:'game-container',backgroundColor:'#1a1a2e',scene:MainScene};
 const game=new Phaser.Game(config);
