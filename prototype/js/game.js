@@ -62,13 +62,13 @@ class MainScene extends Phaser.Scene {
         this.deploymentPoints=5;
         this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false,isPaused:false,inventory:[]};
         this.waveConfig={current:1,enemiesPerWave:5,enemiesSpawned:0,isBreak:false,breakTime:5000};
-        this.keys={};[Phaser.Input.Keyboard.KeyCodes.Q,Phaser.Input.Keyboard.KeyCodes.E,Phaser.Input.Keyboard.KeyCodes.R,Phaser.Input.Keyboard.KeyCodes.ONE,Phaser.Input.Keyboard.KeyCodes.TWO,Phaser.Input.Keyboard.KeyCodes.THREE,Phaser.Input.Keyboard.KeyCodes.FOUR,Phaser.Input.Keyboard.KeyCodes.FIVE,Phaser.Input.Keyboard.KeyCodes.SPACE,Phaser.Input.Keyboard.KeyCodes.ESC].forEach(k=>{this.keys[k]=this.input.keyboard.addKey(k);});
+        this.keys={};[Phaser.Input.Keyboard.KeyCodes.Q,Phaser.Input.Keyboard.KeyCodes.E,Phaser.Input.Keyboard.KeyCodes.R,Phaser.Input.Keyboard.KeyCodes.ONE,Phaser.Input.Keyboard.KeyCodes.TWO,Phaser.Input.Keyboard.KeyCodes.THREE,Phaser.Input.Keyboard.KeyCodes.FOUR,Phaser.Input.Keyboard.KeyCodes.FIVE,Phaser.Input.Keyboard.KeyCodes.SPACE,Phaser.Input.Keyboard.KeyCodes.ESC,Phaser.Input.Keyboard.KeyCodes.B].forEach(k=>{this.keys[k]=this.input.keyboard.addKey(k);});
         this.selectedOpType='OP_TNK';this.heroGemSkillIndex=0;
         this.drawBackground();this.drawPath();this.drawDeployPoints();this.drawObstacles();this.createHero();this.createUI();this.createSkillBar();this.createGemUI();this.createWaveUI();this.createPauseMenu();
         this.spawnTimer=this.time.addEvent({delay:2000,callback:this.spawnEnemy,callbackScope:this,loop:true});
         this.input.on('pointerdown',this.handleClick,this);this.input.mouse.disableContextMenu();
     }
-    update(time,delta){if(this.gameState.isGameOver||this.gameState.isPaused)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();if(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]))this.togglePause();}
+    update(time,delta){if(this.gameState.isGameOver||this.gameState.isPaused)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();if(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]))this.togglePause();if(this.keys[Phaser.Input.Keyboard.KeyCodes.B]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.B]))this.toggleInventory();}
     drawBackground(){this.add.grid(400,300,800,600,CONFIG.tileSize,CONFIG.tileSize,0x1a1a2e,0.5,0x2a2a4e,0.3);}
     drawPath(){
         this.pathPoints=[{x:0,y:7},{x:4,y:7},{x:4,y:3},{x:10,y:3},{x:10,y:11},{x:15,y:11},{x:15,y:7},{x:20,y:7}];
@@ -117,6 +117,15 @@ class MainScene extends Phaser.Scene {
         this.restartBtn.on('pointerdown',()=>this.scene.restart());
     }
     togglePause(){this.gameState.isPaused=!this.gameState.isPaused;this.pauseMenuBg.setVisible(this.gameState.isPaused);this.pauseTitle.setVisible(this.gameState.isPaused);this.resumeBtn.setVisible(this.gameState.isPaused);this.restartBtn.setVisible(this.gameState.isPaused);}
+    toggleInventory(){
+        if(this.inventoryUI){this.inventoryUI.destroy();this.inventoryUI=null;return;}
+        this.inventoryUI=this.add.container(0,0).setDepth(50);
+        this.inventoryUI.add(this.add.rectangle(400,300,500,400,0x000,0.95));
+        this.inventoryUI.add(this.add.text(400,80,'🎒 背包',{fontSize:'28px',color:'#fff',fontStyle:'bold'}).setOrigin(0.5));
+        const items=this.gameState.inventory.length>0?this.gameState.inventory:['(空)'];
+        for(let i=0;i<items.length;i++){this.inventoryUI.add(this.add.text(400,150+i*35,items[i],{fontSize:'18px',color:'#00ffff'}).setOrigin(0.5));}
+        this.inventoryUI.add(this.add.text(400,370,'按 B 關閉',{fontSize:'14px',color:'#888'}).setOrigin(0.5));
+    }
     createSkillBar(){
         const barY=560,barX=600;
         this.skillQ=this.add.rectangle(barX,barY,36,36,0x4ecdc4).setStrokeStyle(2,'#0f0');
