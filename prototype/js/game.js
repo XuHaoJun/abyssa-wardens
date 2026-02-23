@@ -58,7 +58,7 @@ class MainScene extends Phaser.Scene {
         this.terrain=[{x:8,y:5,type:'swamp',speedMod:0.7},{x:8,y:6,type:'swamp',speedMod:0.7},{x:8,y:7,type:'swamp',speedMod:0.7},{x:9,y:6,type:'swamp',speedMod:0.7}];
         // 陷阱
         this.traps=[{x:12,y:7,active:true,damage:30,cooldown:3000,lastTrigger:0}];
-        this.hero={hp:100,maxHp:100,x:80,y:300,speed:150,skills:{basic:{dmg:30,cd:500,range:80},dash:{dmg:20,cd:3000,dist:120,ready:true,lastUsed:0},ultimate:{dmg:200,cd:15000,range:150,ready:true,charge:0,max:100,lastUsed:0}},isDashing:false,targetPath:[],pathIndex:0};
+        this.hero={hp:100,maxHp:100,x:80,y:300,speed:150,skills:{basic:{dmg:30,cd:500,range:80,lastUsed:0},dash:{dmg:20,cd:3000,dist:120,ready:true,lastUsed:0},ultimate:{dmg:200,cd:15000,range:150,ready:true,charge:0,max:100,lastUsed:0}},isDashing:false,targetPath:[],pathIndex:0,autoAttackTimer:0};
         this.deploymentPoints=5;
         this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false,isPaused:false,inventory:[]};
         this.waveConfig={current:1,enemiesPerWave:5,enemiesSpawned:0,isBreak:false,breakTime:5000};
@@ -182,6 +182,24 @@ class MainScene extends Phaser.Scene {
             }else{this.hero.targetX=undefined;this.hero.targetY=undefined;this.targetMarker.setVisible(false);this.attackRange.setVisible(false);}
         }
         this.heroSprite.x=Phaser.Math.Clamp(this.heroSprite.x,20,780);this.heroSprite.y=Phaser.Math.Clamp(this.heroSprite.y,20,550);
+        // 自動普攻
+        this.hero.autoAttackTimer+=delta;
+        if(this.hero.autoAttackTimer>=this.hero.skills.basic.cd){
+            let target=null,minDist=this.hero.skills.basic.range;
+            for(const e of this.gameState.enemies){
+                const d=Phaser.Math.Distance.Between(this.heroSprite.x,this.heroSprite.y,e.sprite.x,e.sprite.y);
+                if(d<minDist){minDist=d;target=e;}
+            }
+            if(target){
+                this.hero.autoAttackTimer=0;
+                const g=this.add.graphics();
+                g.lineStyle(2,0xff6b35,0.8);g.lineBetween(this.heroSprite.x,this.heroSprite.y,target.sprite.x,target.sprite.y);
+                this.time.delayedCall(80,()=>g.destroy());
+                target.hp-=this.hero.skills.basic.dmg;
+                this.showDamage(target.sprite.x,target.sprite.y-15,this.hero.skills.basic.dmg,'#ffa500');
+                if(target.hp<=0)this.killEnemy(target,true);
+            }
+        }
         this.heroText.x=this.heroSprite.x-15;this.heroText.y=this.heroSprite.y-5;
         this.heroHpBar.x=this.heroSprite.x;this.heroHpBar.y=this.heroSprite.y-35;this.heroHpBar.width=40*(this.hero.hp/this.hero.maxHp);
     }
