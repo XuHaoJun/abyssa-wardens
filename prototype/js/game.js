@@ -1,5 +1,4 @@
-// Abyssal Wardens 原型 - 完整算法版
-// 包含: A*, BFS/DFS, 行為樹, 狀態機
+// Abyssal Wardens 原型 - Phase 1: 英雄技能系统
 
 const CONFIG = {
     width: 800,
@@ -19,7 +18,7 @@ const CONFIG = {
     ]
 };
 
-// ==================== A* 尋路演算法 ====================
+// ==================== A* 寻路 ====================
 class AStar {
     constructor(grid, obstacles) {
         this.grid = grid;
@@ -27,16 +26,13 @@ class AStar {
     }
     
     heuristic(a, b) {
-        // Manhattan 距離
         return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     }
     
     getNeighbors(node) {
         const dirs = [
             {x: 0, y: -1}, {x: 1, y: 0},
-            {x: 0, y: 1}, {x: -1, y: 0},
-            {x: -1, y: -1}, {x: 1, y: -1},
-            {x: -1, y: 1}, {x: 1, y: 1}
+            {x: 0, y: 1}, {x: -1, y: 0}
         ];
         const neighbors = [];
         
@@ -73,7 +69,6 @@ class AStar {
         fScore.set(key(start), this.heuristic(start, end));
         
         while (openSet.length > 0) {
-            // 找 fScore 最低的節點
             openSet.sort((a, b) => 
                 (fScore.get(key(a)) || Infinity) - (fScore.get(key(b)) || Infinity)
             );
@@ -88,8 +83,7 @@ class AStar {
             for (const neighbor of this.getNeighbors(current)) {
                 if (closedSet.has(key(neighbor))) continue;
                 
-                const tentativeG = (gScore.get(key(current)) || Infinity) + 
-                    this.heuristic(current, neighbor);
+                const tentativeG = (gScore.get(key(current)) || Infinity) + 1;
                 
                 if (!openSet.find(n => n.x === neighbor.x && n.y === neighbor.y)) {
                     openSet.push(neighbor);
@@ -102,8 +96,7 @@ class AStar {
                 fScore.set(key(neighbor), tentativeG + this.heuristic(neighbor, end));
             }
         }
-        
-        return []; // 無路徑
+        return [];
     }
     
     reconstructPath(cameFrom, current) {
@@ -118,188 +111,65 @@ class AStar {
     }
 }
 
-// ==================== BFS 搜尋 ====================
-class BFS {
-    constructor(grid, obstacles) {
-        this.grid = grid;
-        this.obstacles = obstacles;
-    }
-    
-    isObstacle(x, y) {
-        for (const obs of this.obstacles) {
-            if (obs.x === x && obs.y === y) return true;
-        }
-        return false;
-    }
-    
-    findAllReachable(start) {
-        const visited = new Set();
-        const queue = [start];
-        const reachable = [];
-        
-        const key = (n) => `${n.x},${n.y}`;
-        visited.add(key(start));
-        
-        const dirs = [{x: 0, y: -1}, {x: 1, y: 0}, {x: 0, y: 1}, {x: -1, y: 0}];
-        
-        while (queue.length > 0) {
-            const current = queue.shift();
-            reachable.push(current);
-            
-            for (const dir of dirs) {
-                const nx = current.x + dir.x;
-                const ny = current.y + dir.y;
-                
-                if (nx >= 0 && nx < CONFIG.cols && ny >= 0 && ny < CONFIG.rows) {
-                    if (!this.isObstacle(nx, ny) && !visited.has(key({x: nx, y: ny}))) {
-                        visited.add(key({x: nx, y: ny}));
-                        queue.push({x: nx, y: ny});
-                    }
-                }
-            }
-        }
-        
-        return reachable;
-    }
-}
-
-// ==================== 狀態機 ====================
-class StateMachine {
-    constructor() {
-        this.states = {};
-        this.currentState = null;
-    }
-    
-    addState(name, enter, update, exit) {
-        this.states[name] = { enter, update, exit };
-    }
-    
-    setState(name) {
-        if (this.currentState && this.states[this.currentState].exit) {
-            this.states[this.currentState].exit();
-        }
-        this.currentState = name;
-        if (this.states[name].enter) {
-            this.states[name].enter();
-        }
-    }
-    
-    update(delta) {
-        if (this.currentState && this.states[this.currentState].update) {
-            this.states[this.currentState].update(delta);
-        }
-    }
-}
-
-// ==================== 行為樹 ====================
-class BehaviorTree {
-    constructor() {
-        this.root = null;
-    }
-    
-    run(entity, delta) {
-        if (this.root) {
-            return this.root.execute(entity, delta);
-        }
-        return 'failure';
-    }
-}
-
-class Selector {
-    constructor(children) {
-        this.children = children;
-    }
-    
-    execute(entity, delta) {
-        for (const child of this.children) {
-            const result = child.execute(entity, delta);
-            if (result === 'success') return 'success';
-            if (result === 'running') return 'running';
-        }
-        return 'failure';
-    }
-}
-
-class Sequence {
-    constructor(children) {
-        this.children = children;
-    }
-    
-    execute(entity, delta) {
-        for (const child of this.children) {
-            const result = child.execute(entity, delta);
-            if (result === 'failure') return 'failure';
-            if (result === 'running') return 'running';
-        }
-        return 'success';
-    }
-}
-
-class Condition {
-    constructor(checkFn) {
-        this.checkFn = checkFn;
-    }
-    
-    execute(entity, delta) {
-        return this.checkFn(entity) ? 'success' : 'failure';
-    }
-}
-
-class Action {
-    constructor(actionFn) {
-        this.actionFn = actionFn;
-    }
-    
-    execute(entity, delta) {
-        return this.actionFn(entity, delta);
-    }
-}
-
-// ==================== 主遊戲場景 ====================
+// ==================== 主游戏场景 ====================
 class MainScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MainScene' });
     }
 
     create() {
-        // 初始化 A* 和 BFS
-        this.obstacles = [
-            {x: 5, y: 7}, {x: 6, y: 7}, {x: 7, y: 7}
-        ];
+        this.obstacles = [{x: 5, y: 7}, {x: 6, y: 7}, {x: 7, y: 7}];
         this.astar = new AStar(CONFIG.cols, this.rows, this.obstacles);
-        this.bfs = new BFS(CONFIG.cols, this.rows, this.obstacles);
         
-        // 游戏状态
+        // ========== 英雄系统 ==========
+        this.hero = {
+            hp: 100,
+            maxHp: 100,
+            x: 80,
+            y: 300,
+            speed: 150,
+            attackRange: 80,
+            attackDamage: 30,
+            isDashing: false,
+            targetPath: [],
+            pathIndex: 0,
+            
+            // 技能系统
+            skills: {
+                basic: { name: '普攻', damage: 30, cooldown: 500, range: 80, ready: true },
+                dash: { name: '衝刺', damage: 20, cooldown: 3000, distance: 120, ready: true, lastUsed: 0 },
+                ultimate: { name: '毀滅', damage: 200, cooldown: 15000, range: 150, ready: true, charge: 0, maxCharge: 100, lastUsed: 0 }
+            }
+        };
+        
+        this.deploymentPoints = 5;
+        
         this.gameState = {
             gold: 100,
             exp: 0,
-            cost: 5,
             wave: 1,
             baseHp: 10,
             maxBaseHp: 10,
             enemies: [],
             towers: [],
-            hero: null,
-            heroHp: 100,
-            maxHeroHp: 100,
-            heroCooldown: 0,
-            isGameOver: false,
-            heroTargetX: null,
-            heroTargetY: null,
-            heroPath: [],
-            heroPathIndex: 0
+            isGameOver: false
         };
-
+        
+        this.keys = {};
+        this.keys.Q = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+        this.keys.E = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+        this.keys.R = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        
         this.drawBackground();
         this.drawPath();
         this.drawDeployPoints();
         this.drawObstacles();
         this.createHero();
         this.createUI();
+        this.createSkillBar();
         
-        // 敌人生成定时器
         this.spawnTimer = this.time.addEvent({
-            delay: 2000,
+            delay: 2500,
             callback: this.spawnEnemy,
             callbackScope: this,
             loop: true
@@ -310,18 +180,10 @@ class MainScene extends Phaser.Scene {
 
     update(time, delta) {
         if (this.gameState.isGameOver) return;
-
+        
         this.updateHero(delta, time);
-        
-        if (this.gameState.heroCooldown > 0) {
-            this.gameState.heroCooldown -= delta;
-        }
-        
-        // 更新所有敌人 (使用行为树)
-        for (const enemy of this.gameState.enemies) {
-            this.updateEnemyAI(enemy, delta);
-        }
-        
+        this.updateSkills(time);
+        this.updateEnemies(delta);
         this.updateTowers(delta);
         this.updateUI();
     }
@@ -331,31 +193,23 @@ class MainScene extends Phaser.Scene {
     }
 
     drawPath() {
-        // 预设路径点
         this.pathPoints = [
-            {x: 0, y: 7},
-            {x: 4, y: 7},
-            {x: 4, y: 3},
-            {x: 10, y: 3},
-            {x: 10, y: 11},
-            {x: 15, y: 11},
-            {x: 15, y: 7},
-            {x: 20, y: 7}
+            {x: 0, y: 7}, {x: 4, y: 7}, {x: 4, y: 3},
+            {x: 10, y: 3}, {x: 10, y: 11}, {x: 15, y: 11},
+            {x: 15, y: 7}, {x: 20, y: 7}
         ];
         
-        const graphics = this.add.graphics();
-        graphics.lineStyle(20, 0x4a4a6e, 1);
-        graphics.beginPath();
-        
+        const g = this.add.graphics();
+        g.lineStyle(20, 0x4a4a6e, 1);
+        g.beginPath();
         for (let i = 0; i < this.pathPoints.length; i++) {
             const px = this.pathPoints[i].x * CONFIG.tileSize;
             const py = this.pathPoints[i].y * CONFIG.tileSize + CONFIG.tileSize/2;
-            if (i === 0) graphics.moveTo(px, py);
-            else graphics.lineTo(px, py);
+            if (i === 0) g.moveTo(px, py);
+            else g.lineTo(px, py);
         }
-        graphics.strokePath();
+        g.strokePath();
         
-        // 终点
         const end = this.pathPoints[this.pathPoints.length - 1];
         this.add.rectangle(end.x * CONFIG.tileSize, end.y * CONFIG.tileSize + CONFIG.tileSize/2, 60, 60, 0xff0000, 0.3);
         this.add.text(end.x * CONFIG.tileSize - 30, end.y * CONFIG.tileSize + CONFIG.tileSize/2 - 10, '基地', { fontSize: '14px', color: '#ff0000' });
@@ -366,13 +220,7 @@ class MainScene extends Phaser.Scene {
             this.add.rectangle(
                 obs.x * CONFIG.tileSize + CONFIG.tileSize/2,
                 obs.y * CONFIG.tileSize + CONFIG.tileSize/2,
-                CONFIG.tileSize, CONFIG.tileSize,
-                0x888888, 0.5
-            );
-            this.add.text(
-                obs.x * CONFIG.tileSize + 5,
-                obs.y * CONFIG.tileSize + 10,
-                '障', { fontSize: '12px', color: '#000000' }
+                CONFIG.tileSize, CONFIG.tileSize, 0x888888, 0.5
             );
         }
     }
@@ -383,53 +231,23 @@ class MainScene extends Phaser.Scene {
         for (let i = 0; i < CONFIG.deployPoints.length; i++) {
             const point = CONFIG.deployPoints[i];
             const color = point.type === 'highground' ? 0x4ecdc4 : 0xffe66d;
-            const rect = this.add.rectangle(
-                point.x, point.y, CONFIG.tileSize - 5, CONFIG.tileSize - 5, color, 0.4
-            );
+            const rect = this.add.rectangle(point.x, point.y, 35, 35, color, 0.4);
             rect.setStrokeStyle(2, color);
             rect.setInteractive();
             rect.pointData = point;
             rect.pointIndex = i;
             this.deployPointGraphics.push(rect);
-            
-            const label = point.type === 'highground' ? '高' : '平';
-            this.add.text(point.x - 10, point.y - 5, label, { fontSize: '12px', color: '#ffffff' });
+            this.add.text(point.x - 10, point.y - 5, point.type === 'highground' ? '高' : '平', { fontSize: '12px', color: '#ffffff' });
         }
     }
 
     createHero() {
-        const start = this.pathPoints[0];
-        this.hero = this.add.circle(start.x * CONFIG.tileSize, start.y * CONFIG.tileSize + CONFIG.tileSize/2, 18, 0xff6b35);
-        this.heroText = this.add.text(start.x * CONFIG.tileSize - 15, start.y * CONFIG.tileSize + CONFIG.tileSize/2 - 5, '英', { 
-            fontSize: '14px', fontStyle: 'bold', color: '#ffffff' 
-        });
-        this.heroHpBar = this.add.rectangle(start.x * CONFIG.tileSize, start.y * CONFIG.tileSize + CONFIG.tileSize/2 - 30, 36, 5, 0x00ff00);
-        
-        this.targetMarker = this.add.circle(start.x * CONFIG.tileSize, start.y * CONFIG.tileSize + CONFIG.tileSize/2, 8, 0xffff00, 0.5);
-        this.targetMarker.setVisible(false);
-        
-        this.gameState.heroTargetX = start.x * CONFIG.tileSize;
-        this.gameState.heroTargetY = start.y * CONFIG.tileSize + CONFIG.tileSize/2;
-        
-        // 英雄行为树
-        this.heroBehaviorTree = new BehaviorTree();
-        this.heroBehaviorTree.root = new Selector([
-            new Sequence([
-                new Condition((e) => e.targetEnemy && e.inRange),
-                new Action((e, delta) => {
-                    this.heroAttack(e.targetEnemy);
-                    return 'success';
-                })
-            ]),
-            new Sequence([
-                new Condition((e) => e.hasPath),
-                new Action((e, delta) => {
-                    this.followPath(delta);
-                    return 'running';
-                })
-            ]),
-            new Action((e, delta) => 'failure')
-        ]);
+        this.heroSprite = this.add.circle(this.hero.x, this.hero.y, 20, 0xff6b35);
+        this.heroText = this.add.text(this.hero.x - 15, this.hero.y - 5, '英', { fontSize: '14px', fontStyle: 'bold', color: '#ffffff' });
+        this.heroHpBar = this.add.rectangle(this.hero.x, this.hero.y - 35, 40, 6, 0x00ff00);
+        this.heroHpBarBg = this.add.rectangle(this.hero.x, this.hero.y - 35, 40, 6, 0x333333).setStrokeStyle(1, 0xffffff);
+        this.targetMarker = this.add.circle(this.hero.x, this.hero.y, 8, 0xffff00, 0.5).setVisible(false);
+        this.attackRangeGraphic = this.add.circle(this.hero.x, this.hero.y, this.hero.skills.basic.range, 0xff6b35, 0.1).setVisible(false);
     }
 
     createUI() {
@@ -438,88 +256,238 @@ class MainScene extends Phaser.Scene {
         this.waveText = this.add.text(20, 80, '波: 1', { fontSize: '18px', color: '#ffffff', backgroundColor: '#00000088', padding: { x: 10, y: 5 } });
         this.baseHpText = this.add.text(650, 20, '基: 10/10', { fontSize: '18px', color: '#ff0000', backgroundColor: '#00000088', padding: { x: 10, y: 5 } });
         
-        this.add.text(20, 550, '演算法: A* | BFS | 行為樹 | 狀態機', { fontSize: '12px', color: '#4ecdc4' });
-        this.add.text(20, 570, '點地:移動 | 點部署點:塔 | 點敵:攻擊', { fontSize: '12px', color: '#888888' });
+        this.add.text(20, 110, '統帥值:', { fontSize: '14px', color: '#ff6b35' });
+        this.ultBarBg = this.add.rectangle(100, 118, 100, 12, 0x333333);
+        this.ultBar = this.add.rectangle(50, 118, 0, 10, 0xff6b35);
+        
+        this.add.text(20, 550, '左鍵:移動/部署 | Q:衝刺 | E:普攻 | R:大招', { fontSize: '12px', color: '#888888' });
     }
 
-    updateUI() {
-        this.goldText.setText(`金: ${this.gameState.gold}`);
-        this.costText.setText(`點: ${this.gameState.cost}`);
-        this.waveText.setText(`波: ${this.gameState.wave}`);
-        this.baseHpText.setText(`基: ${this.gameState.baseHp}/${this.gameState.maxBaseHp}`);
+    createSkillBar() {
+        const barY = 560;
+        const barX = 300;
+        
+        this.add.rectangle(barX + 120, barY + 15, 250, 40, 0x000000, 0.6).setStrokeStyle(2, 0x4a4a6e);
+        
+        // Q - 冲刺
+        this.skillQ = this.add.rectangle(barX, barY, 36, 36, 0x4ecdc4).setStrokeStyle(2, 0x00ff00);
+        this.skillQText = this.add.text(barX - 12, barY - 8, 'Q', { fontSize: '20px', fontStyle: 'bold', color: '#000000' });
+        this.skillQIcon = this.add.text(barX - 10, barY + 5, '⚡', { fontSize: '14px' });
+        this.skillQCooldown = this.add.rectangle(barX, barY, 36, 36, 0x000000, 0.7).setVisible(false);
+        
+        // E - 普攻
+        this.skillE = this.add.rectangle(barX + 50, barY, 36, 36, 0xffe66d).setStrokeStyle(2, 0x00ff00);
+        this.skillEText = this.add.text(barX + 38, barY - 8, 'E', { fontSize: '20px', fontStyle: 'bold', color: '#000000' });
+        this.skillEIcon = this.add.text(barX + 40, barY + 5, '劍', { fontSize: '14px' });
+        
+        // R - 大招
+        this.skillR = this.add.rectangle(barX + 100, barY, 36, 36, 0xff6b35).setStrokeStyle(2, 0x00ff00);
+        this.skillRText = this.add.text(barX + 88, barY - 8, 'R', { fontSize: '20px', fontStyle: 'bold', color: '#000000' });
+        this.skillRIcon = this.add.text(barX + 90, barY + 5, '💥', { fontSize: '14px' });
+        this.skillRCooldown = this.add.rectangle(barX + 100, barY, 36, 36, 0x000000, 0.7).setVisible(false);
+    }
+
+    updateSkills(time) {
+        const skills = this.hero.skills;
+        
+        // 冲刺冷却
+        if (!skills.dash.ready) {
+            const cd = Math.max(0, (skills.dash.lastUsed + skills.dash.cooldown) - time);
+            if (cd > 0) {
+                this.skillQCooldown.setVisible(true);
+                this.skillQCooldown.height = 36 * (cd / skills.dash.cooldown);
+            } else {
+                skills.dash.ready = true;
+                this.skillQCooldown.setVisible(false);
+                this.skillQ.setStrokeStyle(2, 0x00ff00);
+            }
+        }
+        
+        // 大招冷却
+        if (!skills.ultimate.ready) {
+            const cd = Math.max(0, (skills.ultimate.lastUsed + skills.ultimate.cooldown) - time);
+            if (cd > 0) {
+                this.skillRCooldown.setVisible(true);
+                this.skillRCooldown.height = 36 * (cd / skills.ultimate.cooldown);
+            } else {
+                skills.ultimate.ready = true;
+                this.skillRCooldown.setVisible(false);
+                this.skillR.setStrokeStyle(2, 0x00ff00);
+            }
+        }
+        
+        // 统率值条
+        const ultPercent = skills.ultimate.charge / skills.ultimate.maxCharge;
+        this.ultBar.width = 100 * ultPercent;
+        this.ultBar.x = 50 + (50 * ultPercent);
+        
+        // 统率值满时提示
+        if (skills.ultimate.charge >= skills.ultimate.maxCharge && skills.ultimate.ready) {
+            this.skillR.setFillStyle(0xff0000);
+        } else {
+            this.skillR.setFillStyle(0xff6b35);
+        }
     }
 
     updateHero(delta, time) {
-        // 准备行为树输入
-        const heroEntity = {
-            x: this.hero.x,
-            y: this.hero.y,
-            targetX: this.gameState.heroTargetX,
-            targetY: this.gameState.heroTargetY,
-            hasPath: this.gameState.heroPath.length > 0,
-            targetEnemy: this.findNearestEnemyInRange(80),
-            inRange: false,
-            get inRange() {
-                return this.targetEnemy !== null;
+        if (Phaser.Input.Keyboard.JustDown(this.keys.Q)) this.useDash(time);
+        if (Phaser.Input.Keyboard.JustDown(this.keys.E)) this.useBasicAttack(time);
+        if (Phaser.Input.Keyboard.JustDown(this.keys.R)) this.useUltimate(time);
+        
+        if (this.hero.targetPath.length > 0) {
+            const target = this.hero.targetPath[this.hero.pathIndex];
+            const tx = target.x * CONFIG.tileSize + CONFIG.tileSize/2;
+            const ty = target.y * CONFIG.tileSize + CONFIG.tileSize/2;
+            
+            const dx = tx - this.heroSprite.x;
+            const dy = ty - this.heroSprite.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < 5) {
+                this.hero.pathIndex++;
+                if (this.hero.pathIndex >= this.hero.targetPath.length) {
+                    this.hero.targetPath = [];
+                    this.hero.pathIndex = 0;
+                    this.targetMarker.setVisible(false);
+                    this.attackRangeGraphic.setVisible(false);
+                }
+            } else {
+                const speed = this.hero.isDashing ? this.hero.speed * 2.5 : this.hero.speed;
+                this.heroSprite.x += (dx / dist) * speed * delta / 1000;
+                this.heroSprite.y += (dy / dist) * speed * delta / 1000;
             }
-        };
-        
-        // 运行行为树
-        this.heroBehaviorTree.run(heroEntity, delta);
-        
-        // 基础移动
-        this.hero.x = Phaser.Math.Clamp(this.hero.x, 20, 780);
-        this.hero.y = Phaser.Math.Clamp(this.hero.y, 20, 580);
-        
-        this.heroText.x = this.hero.x - 15;
-        this.heroText.y = this.hero.y - 5;
-        this.heroHpBar.x = this.hero.x;
-        this.heroHpBar.y = this.hero.y - 30;
-    }
-    
-    followPath(delta) {
-        if (this.gameState.heroPath.length === 0) return;
-        
-        const speed = 150;
-        const target = this.gameState.heroPath[this.gameState.heroPathIndex];
-        const tx = target.x * CONFIG.tileSize + CONFIG.tileSize/2;
-        const ty = target.y * CONFIG.tileSize + CONFIG.tileSize/2;
-        
-        const dx = tx - this.hero.x;
-        const dy = ty - this.hero.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        if (dist < 5) {
-            this.gameState.heroPathIndex++;
-            if (this.gameState.heroPathIndex >= this.gameState.heroPath.length) {
-                this.gameState.heroPath = [];
-                this.gameState.heroPathIndex = 0;
-                this.targetMarker.setVisible(false);
-            }
-        } else {
-            this.hero.x += (dx / dist) * speed * delta / 1000;
-            this.hero.y += (dy / dist) * speed * delta / 1000;
         }
+        
+        this.heroSprite.x = Phaser.Math.Clamp(this.heroSprite.x, 20, 780);
+        this.heroSprite.y = Phaser.Math.Clamp(this.heroSprite.y, 20, 550);
+        
+        this.heroText.x = this.heroSprite.x - 15;
+        this.heroText.y = this.heroSprite.y - 5;
+        this.heroHpBar.x = this.heroSprite.x;
+        this.heroHpBar.y = this.heroSprite.y - 35;
+        this.heroHpBar.width = 40 * (this.hero.hp / this.hero.maxHp);
+        this.heroHpBarBg.x = this.heroSprite.x;
+        this.heroHpBarBg.y = this.heroSprite.y - 35;
+        this.attackRangeGraphic.x = this.heroSprite.x;
+        this.attackRangeGraphic.y = this.heroSprite.y;
     }
 
-    findNearestEnemyInRange(range) {
-        let nearest = null;
-        let minDist = range;
+    useBasicAttack(time) {
+        let target = null;
+        let minDist = this.hero.skills.basic.range;
         
         for (const enemy of this.gameState.enemies) {
-            const dist = Phaser.Math.Distance.Between(this.hero.x, this.hero.y, enemy.sprite.x, enemy.sprite.y);
+            const dist = Phaser.Math.Distance.Between(this.heroSprite.x, this.heroSprite.y, enemy.sprite.x, enemy.sprite.y);
             if (dist < minDist) {
                 minDist = dist;
-                nearest = enemy;
+                target = enemy;
             }
         }
-        return nearest;
+        
+        if (target) {
+            const g = this.add.graphics();
+            g.lineStyle(3, 0xffe66d, 1);
+            g.lineBetween(this.heroSprite.x, this.heroSprite.y, target.sprite.x, target.sprite.y);
+            this.time.delayedCall(100, () => g.destroy());
+            
+            target.hp -= this.hero.skills.basic.damage;
+            this.showDamage(target.sprite.x, target.sprite.y - 20, this.hero.skills.basic.damage.toString());
+            
+            this.hero.skills.ultimate.charge = Math.min(this.hero.skills.ultimate.maxCharge, this.hero.skills.ultimate.charge + 5);
+            
+            if (target.hp <= 0) this.killEnemy(target, true);
+            this.showMessage('普攻!', this.heroSprite.x, this.heroSprite.y - 50, '#ffe66d');
+        } else {
+            this.showMessage('範圍無敵', this.heroSprite.x, this.heroSprite.y - 50, '#888888');
+        }
+    }
+    
+    useDash(time) {
+        if (!this.hero.skills.dash.ready) {
+            this.showMessage('衝刺冷卻中', this.heroSprite.x, this.heroSprite.y - 50, '#ff0000');
+            return;
+        }
+        
+        const pointer = this.input.activePointer;
+        this.hero.isDashing = true;
+        this.hero.skills.dash.lastUsed = time;
+        this.hero.skills.dash.ready = false;
+        this.skillQ.setStrokeStyle(2, 0xff0000);
+        
+        const dx = pointer.x - this.heroSprite.x;
+        const dy = pointer.y - this.heroSprite.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 0) {
+            const dashDist = Math.min(this.hero.skills.dash.distance, dist);
+            this.heroSprite.x += (dx / dist) * dashDist;
+            this.heroSprite.y += (dy / dist) * dashDist;
+            
+            const g = this.add.graphics();
+            for (let i = 0; i < 5; i++) {
+                g.lineStyle(2, 0x4ecdc4, 0.5);
+                g.lineBetween(
+                    this.heroSprite.x - (dx/dist) * i * 20,
+                    this.heroSprite.y - (dy/dist) * i * 20,
+                    this.heroSprite.x - (dx/dist) * (i+1) * 20,
+                    this.heroSprite.y - (dy/dist) * (i+1) * 20
+                );
+            }
+            this.time.delayedCall(200, () => g.destroy());
+        }
+        
+        for (const enemy of this.gameState.enemies) {
+            const dist = Phaser.Math.Distance.Between(this.heroSprite.x, this.heroSprite.y, enemy.sprite.x, enemy.sprite.y);
+            if (dist < 50) {
+                enemy.hp -= this.hero.skills.dash.damage;
+                this.showDamage(enemy.sprite.x, enemy.sprite.y - 20, this.hero.skills.dash.damage.toString());
+                if (enemy.hp <= 0) this.killEnemy(enemy, true);
+            }
+        }
+        
+        this.time.delayedCall(300, () => { this.hero.isDashing = false; });
+        this.showMessage('衝刺!', this.heroSprite.x, this.heroSprite.y - 50, '#4ecdc4');
+    }
+    
+    useUltimate(time) {
+        if (!this.hero.skills.ultimate.ready) {
+            this.showMessage('大招冷卻中', this.heroSprite.x, this.heroSprite.y - 50, '#ff0000');
+            return;
+        }
+        
+        if (this.hero.skills.ultimate.charge < this.hero.skills.ultimate.maxCharge) {
+            this.showMessage('統帥值未滿', this.heroSprite.x, this.heroSprite.y - 50, '#ff8800');
+            return;
+        }
+        
+        this.hero.skills.ultimate.lastUsed = time;
+        this.hero.skills.ultimate.ready = false;
+        this.hero.skills.ultimate.charge = 0;
+        this.skillR.setStrokeStyle(2, 0xff0000);
+        
+        const range = this.hero.skills.ultimate.range;
+        const rangeGraphic = this.add.circle(this.heroSprite.x, this.heroSprite.y, range, 0xff6b35, 0.3);
+        
+        let hitCount = 0;
+        for (const enemy of this.gameState.enemies) {
+            const dist = Phaser.Math.Distance.Between(this.heroSprite.x, this.heroSprite.y, enemy.sprite.x, enemy.sprite.y);
+            if (dist < range) {
+                enemy.hp -= this.hero.skills.ultimate.damage;
+                this.showDamage(enemy.sprite.x, enemy.sprite.y - 20, this.hero.skills.ultimate.damage.toString());
+                hitCount++;
+                if (enemy.hp <= 0) this.killEnemy(enemy, true);
+            }
+        }
+        
+        this.cameras.main.shake(200, 0.01);
+        this.time.delayedCall(500, () => rangeGraphic.destroy());
+        
+        this.showMessage(`毀滅! 命中${hitCount}人`, this.heroSprite.x, this.heroSprite.y - 50, '#ff6b35');
     }
 
     handleClick(pointer) {
         if (this.gameState.isGameOver) return;
         
-        // 检查部署点
         for (const point of this.deployPointGraphics) {
             if (point.getBounds().contains(pointer.x, pointer.y)) {
                 this.deployTower(point.pointData, point.pointIndex);
@@ -527,41 +495,27 @@ class MainScene extends Phaser.Scene {
             }
         }
         
-        // 检查敌人
-        for (const enemy of this.gameState.enemies) {
-            const dist = Phaser.Math.Distance.Between(this.hero.x, this.hero.y, enemy.sprite.x, enemy.sprite.y);
-            if (dist < 80 && this.gameState.heroCooldown <= 0) {
-                this.heroAttack(enemy);
-                return;
-            }
-        }
-        
-        // A* 寻路移动
-        const startX = Math.floor(this.hero.x / CONFIG.tileSize);
-        const startY = Math.floor(this.hero.y / CONFIG.tileSize);
+        const startX = Math.floor(this.heroSprite.x / CONFIG.tileSize);
+        const startY = Math.floor(this.heroSprite.y / CONFIG.tileSize);
         const endX = Math.floor(pointer.x / CONFIG.tileSize);
         const endY = Math.floor(pointer.y / CONFIG.tileSize);
         
         const path = this.astar.findPath({x: startX, y: startY}, {x: endX, y: endY});
         
         if (path.length > 0) {
-            this.gameState.heroPath = path;
-            this.gameState.heroPathIndex = 0;
-            
-            this.gameState.heroTargetX = pointer.x;
-            this.gameState.heroTargetY = pointer.y;
+            this.hero.targetPath = path;
+            this.hero.pathIndex = 0;
             this.targetMarker.x = pointer.x;
             this.targetMarker.y = pointer.y;
             this.targetMarker.setVisible(true);
-            
-            this.showMessage('A*', pointer.x, pointer.y - 20, '#00ff00');
-        } else {
-            this.showMessage('無法到達', pointer.x, pointer.y - 20, '#ff0000');
+            this.attackRangeGraphic.x = pointer.x;
+            this.attackRangeGraphic.y = pointer.y;
+            this.attackRangeGraphic.setVisible(true);
         }
     }
 
     deployTower(pointData, index) {
-        if (this.gameState.cost < 5) {
+        if (this.deploymentPoints < 5) {
             this.showMessage('點數不足!', pointData.x, pointData.y - 30, '#ff0000');
             return;
         }
@@ -571,7 +525,7 @@ class MainScene extends Phaser.Scene {
             return;
         }
         
-        this.gameState.cost -= 5;
+        this.deploymentPoints -= 5;
         
         const tower = {
             sprite: this.add.rectangle(pointData.x, pointData.y, 35, 35, 0x4ecdc4),
@@ -580,37 +534,16 @@ class MainScene extends Phaser.Scene {
             range: 100,
             attackCooldown: 0,
             pointIndex: index,
-            rangeGraphic: this.add.circle(pointData.x, pointData.y, tower?.range || 100, 0x4ecdc4, 0.1)
+            rangeGraphic: this.add.circle(pointData.x, pointData.y, 100, 0x4ecdc4, 0.1).setVisible(false)
         };
-        
-        if (tower.rangeGraphic) tower.rangeGraphic.setVisible(false);
         
         this.gameState.towers[index] = tower;
         
-        // 范围显示切换
         tower.sprite.setInteractive();
-        tower.sprite.on('pointerover', () => {
-            if (tower.rangeGraphic) tower.rangeGraphic.setVisible(true);
-        });
-        tower.sprite.on('pointerout', () => {
-            if (tower.rangeGraphic) tower.rangeGraphic.setVisible(false);
-        });
+        tower.sprite.on('pointerover', () => tower.rangeGraphic.setVisible(true));
+        tower.sprite.on('pointerout', () => tower.rangeGraphic.setVisible(false));
         
         this.showMessage('塔!', pointData.x, pointData.y - 30, '#4ecdc4');
-    }
-
-    heroAttack(enemy) {
-        this.gameState.heroCooldown = 500;
-        
-        const graphics = this.add.graphics();
-        graphics.lineStyle(3, 0xff6b35, 1);
-        graphics.lineBetween(this.hero.x, this.hero.y, enemy.sprite.x, enemy.sprite.y);
-        this.time.delayedCall(100, () => graphics.destroy());
-        
-        enemy.hp -= 30;
-        this.showDamage(enemy.sprite.x, enemy.sprite.y - 20, '30');
-        
-        if (enemy.hp <= 0) this.killEnemy(enemy, true);
     }
 
     spawnEnemy() {
@@ -625,33 +558,6 @@ class MainScene extends Phaser.Scene {
         const type = types[Math.floor(Math.random() * types.length)];
         const start = this.pathPoints[0];
         
-        // 为每个敌人创建行为树
-        const enemyBehaviorTree = new BehaviorTree();
-        enemyBehaviorTree.root = new Selector([
-            new Sequence([
-                new Condition((e) => e.distanceToBase < 2),
-                new Action((e, delta) => {
-                    this.gameState.baseHp -= 1;
-                    this.showMessage('漏!', 700, 300, '#ff0000');
-                    if (this.gameState.baseHp <= 0) this.gameOver();
-                    return 'success';
-                })
-            ]),
-            new Sequence([
-                new Condition((e) => e.health < 30),
-                new Action((e, delta) => {
-                    // 逃跑逻辑
-                    e.speed *= 1.5;
-                    return 'running';
-                })
-            ]),
-            new Action((e, delta) => {
-                // 正常移动
-                this.moveAlongPath(e, delta);
-                return 'running';
-            })
-        ]);
-        
         const enemy = {
             sprite: this.add.circle(start.x * CONFIG.tileSize, start.y * CONFIG.tileSize + CONFIG.tileSize/2, 15, type.color),
             text: this.add.text(start.x * CONFIG.tileSize - 8, start.y * CONFIG.tileSize + CONFIG.tileSize/2 - 5, type.name, { fontSize: '12px', color: '#ffffff' }),
@@ -659,49 +565,45 @@ class MainScene extends Phaser.Scene {
             maxHp: type.hp,
             speed: type.speed,
             reward: type.reward,
-            pathIndex: 0,
-            behaviorTree: enemyBehaviorTree,
-            distanceToBase: 999
+            pathIndex: 0
         };
         
         this.gameState.enemies.push(enemy);
     }
 
-    updateEnemyAI(enemy, delta) {
-        // 计算到基地距离 (BFS)
-        const ex = Math.floor(enemy.sprite.x / CONFIG.tileSize);
-        const ey = Math.floor(enemy.sprite.y / CONFIG.tileSize);
-        const bfs = new BFS();
-        const reachable = bfs.findAllReachable({x: ex, y: ey});
-        enemy.distanceToBase = Math.min(...reachable.map(p => Math.abs(p.x - 19) + Math.abs(p.y - 7)));
-        
-        // 运行行为树
-        enemy.behaviorTree.run(enemy, delta);
-    }
-
-    moveAlongPath(enemy, delta) {
-        const targetPoint = this.pathPoints[enemy.pathIndex + 1];
-        if (!targetPoint) {
-            this.killEnemy(enemy, false);
-            return;
+    updateEnemies(delta) {
+        for (let i = this.gameState.enemies.length - 1; i >= 0; i--) {
+            const enemy = this.gameState.enemies[i];
+            
+            const targetPoint = this.pathPoints[enemy.pathIndex + 1];
+            if (!targetPoint) {
+                this.gameState.baseHp -= 1;
+                this.showMessage('漏!', 700, 300, '#ff0000');
+                enemy.sprite.destroy();
+                enemy.text.destroy();
+                this.gameState.enemies.splice(i, 1);
+                
+                if (this.gameState.baseHp <= 0) this.gameOver();
+                continue;
+            }
+            
+            const tx = targetPoint.x * CONFIG.tileSize;
+            const ty = targetPoint.y * CONFIG.tileSize + CONFIG.tileSize/2;
+            
+            const dx = tx - enemy.sprite.x;
+            const dy = ty - enemy.sprite.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < 5) {
+                enemy.pathIndex++;
+            } else {
+                enemy.sprite.x += (dx / dist) * enemy.speed * delta / 1000;
+                enemy.sprite.y += (dy / dist) * enemy.speed * delta / 1000;
+            }
+            
+            enemy.text.x = enemy.sprite.x - 8;
+            enemy.text.y = enemy.sprite.y - 5;
         }
-        
-        const tx = targetPoint.x * CONFIG.tileSize;
-        const ty = targetPoint.y * CONFIG.tileSize + CONFIG.tileSize/2;
-        
-        const dx = tx - enemy.sprite.x;
-        const dy = ty - enemy.sprite.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        if (dist < 5) {
-            enemy.pathIndex++;
-        } else {
-            enemy.sprite.x += (dx / dist) * enemy.speed * delta / 1000;
-            enemy.sprite.y += (dy / dist) * enemy.speed * delta / 1000;
-        }
-        
-        enemy.text.x = enemy.sprite.x - 8;
-        enemy.text.y = enemy.sprite.y - 5;
     }
 
     updateTowers(delta) {
@@ -723,29 +625,26 @@ class MainScene extends Phaser.Scene {
                 }
                 
                 if (target) {
-                    this.towerAttack(tower, target);
+                    const g = this.add.graphics();
+                    g.lineStyle(2, 0x4ecdc4, 1);
+                    g.lineBetween(tower.sprite.x, tower.sprite.y, target.sprite.x, target.sprite.y);
+                    this.time.delayedCall(100, () => g.destroy());
+                    
+                    target.hp -= tower.damage;
+                    this.showDamage(target.sprite.x, target.sprite.y - 20, tower.damage.toString());
+                    
+                    if (target.hp <= 0) this.killEnemy(target, true);
+                    
                     tower.attackCooldown = 1000;
                 }
             }
         }
     }
 
-    towerAttack(tower, target) {
-        const graphics = this.add.graphics();
-        graphics.lineStyle(2, 0x4ecdc4, 1);
-        graphics.lineBetween(tower.sprite.x, tower.sprite.y, target.sprite.x, target.sprite.y);
-        this.time.delayedCall(100, () => graphics.destroy());
-        
-        target.hp -= tower.damage;
-        this.showDamage(target.sprite.x, target.sprite.y - 20, tower.damage.toString());
-        
-        if (target.hp <= 0) this.killEnemy(target, true);
-    }
-
     killEnemy(enemy, getReward) {
         if (getReward) {
             this.gameState.gold += enemy.reward;
-            this.gameState.cost += 2;
+            this.deploymentPoints += 2;
             this.gameState.exp += 10;
             this.showMessage(`+${enemy.reward}`, enemy.sprite.x, enemy.sprite.y - 30, '#ffd700');
             
@@ -760,6 +659,13 @@ class MainScene extends Phaser.Scene {
         
         const idx = this.gameState.enemies.indexOf(enemy);
         if (idx > -1) this.gameState.enemies.splice(idx, 1);
+    }
+
+    updateUI() {
+        this.goldText.setText(`金: ${this.gameState.gold}`);
+        this.costText.setText(`點: ${this.deploymentPoints}`);
+        this.waveText.setText(`波: ${this.gameState.wave}`);
+        this.baseHpText.setText(`基: ${this.gameState.baseHp}/${this.gameState.maxBaseHp}`);
     }
 
     showDamage(x, y, text) {
