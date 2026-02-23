@@ -172,6 +172,15 @@ class MainScene extends Phaser.Scene {
             if(d<5){this.hero.pathIndex++;if(this.hero.pathIndex>=this.hero.targetPath.length){this.hero.targetPath=[];this.targetMarker.setVisible(false);this.attackRange.setVisible(false);}}
             else{const sp=this.hero.isDashing?this.hero.speed*2.5:this.hero.speed;this.heroSprite.x+=dx/d*sp*delta/1000;this.heroSprite.y+=dy/d*sp*delta/1000;}
         }
+        // 直接移動到目標點
+        if(this.hero.targetX!==undefined){
+            const dx=this.hero.targetX-this.heroSprite.x,dy=this.hero.targetY-this.heroSprite.y,d=Math.sqrt(dx*dx+dy*dy);
+            if(d>5){
+                const sp=this.hero.speed*delta/1000;
+                this.heroSprite.x+=dx/d*Math.min(sp,d);
+                this.heroSprite.y+=dy/d*Math.min(sp,d);
+            }else{this.hero.targetX=undefined;this.hero.targetY=undefined;this.targetMarker.setVisible(false);this.attackRange.setVisible(false);}
+        }
         this.heroSprite.x=Phaser.Math.Clamp(this.heroSprite.x,20,780);this.heroSprite.y=Phaser.Math.Clamp(this.heroSprite.y,20,550);
         this.heroText.x=this.heroSprite.x-15;this.heroText.y=this.heroSprite.y-5;
         this.heroHpBar.x=this.heroSprite.x;this.heroHpBar.y=this.heroSprite.y-35;this.heroHpBar.width=40*(this.hero.hp/this.hero.maxHp);
@@ -199,11 +208,13 @@ class MainScene extends Phaser.Scene {
         this.cameras.main.shake(200,0.01);this.time.delayedCall(500,()=>g.destroy());
     }
     handleClick(pointer){
-        if(this.gameState.isGameOver)return;
-        if(pointer.rightButtonDown()){for(let i=0;i<this.gameState.towers.length;i++){const t=this.gameState.towers[i];if(t&&t.sprite.getBounds().contains(pointer.x,pointer.y)){if(t.gem)t.gem.isDeployed=false;this.deploymentPoints+=Math.floor(t.cost*0.5);t.sprite.destroy();t.text.destroy();t.hpBar.destroy();t.rangeG.destroy();this.gameState.towers[i]=null;return;}}return;}
-        for(const pt of this.deployPointGraphics){if(pt.getBounds().contains(pointer.x,pointer.y)){this.deployTower(pt.pointData,pt.pointIndex);return;}}
-        const path=this.astar.findPath({x:Math.floor(this.heroSprite.x/40),y:Math.floor(this.heroSprite.y/40)},{x:Math.floor(pointer.x/40),y:Math.floor(pointer.y/40)});
-        if(path.length>0){this.hero.targetPath=path;this.hero.pathIndex=0;this.targetMarker.setPosition(pointer.x,pointer.y).setVisible(true);this.attackRange.setPosition(pointer.x,pointer.y).setVisible(true);}
+        if(this.gameState.isGameOver||this.gameState.isPaused)return;
+        // 直接移動到點擊位置
+        this.hero.targetX=pointer.x;
+        this.hero.targetY=pointer.y;
+        this.hero.targetPath=[]; // 清除路徑
+        this.targetMarker.setPosition(pointer.x,pointer.y).setVisible(true);
+        this.attackRange.setPosition(pointer.x,pointer.y).setVisible(true);
     }
     deployTower(pd,idx){
         const gem=GEM_TYPES[this.selectedOpType];
