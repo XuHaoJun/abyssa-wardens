@@ -1,4 +1,4 @@
-// Abyssal Wardens 原型 - Task 4: 波次與精英怪
+// Abyssal Wardens 原型 - 完整裝備系統
 const CONFIG = { width:800, height:600, tileSize:40, cols:20, rows:15,
     deployPoints:[{x:100,y:200,type:'ground'},{x:100,y:400,type:'ground'},{x:300,y:200,type:'highground'},{x:300,y:400,type:'highground'},{x:500,y:200,type:'highground'},{x:500,y:400,type:'highground'},{x:700,y:200,type:'ground'},{x:700,y:400,type:'ground'}] };
 
@@ -9,19 +9,60 @@ const ELITE_AFFIXES = {
     HEAL:{name:'癒',icon:'💚',color:0x00ff00,effect:'每秒回血'}
 };
 
+// 寶石類型
 const GEM_TYPES = {
-    SKILL_FIREBALL:{name:'火球',icon:'🔥',type:'skill',damage:50,cooldown:1000,range:150},
-    SKILL_ICE:{name:'冰霜',icon:'❄️',type:'skill',damage:30,cooldown:800,range:120,slow:0.3},
-    SKILL_LIGHTNING:{name:'閃電',icon:'⚡',type:'skill',damage:40,cooldown:600,range:130},
-    OP_TNK:{name:'重裝',icon:'🛡️',type:'operator',hp:500,atk:15,range:60,block:3,cost:5,color:0x4a90d9},
-    OP_MEL:{name:'近衛',icon:'⚔️',type:'operator',hp:300,atk:25,range:70,block:2,cost:4,color:0xd94a4a},
-    OP_RNG:{name:'狙擊',icon:'🏹',type:'operator',hp:150,atk:35,range:150,block:0,cost:4,color:0x4ad94a},
-    OP_MAG:{name:'術士',icon:'🔥',type:'operator',hp:120,atk:40,range:120,block:0,cost:5,color:0x9b4ad9}
+    // 🔴 技能石
+    SKILL_FIREBALL:{name:'火球',icon:'🔥',category:'skill',damage:50,cooldown:1000,range:150},
+    SKILL_ICE:{name:'冰霜',icon:'❄️',category:'skill',damage:30,cooldown:800,range:120,slow:0.3},
+    SKILL_LIGHTNING:{name:'閃電',icon:'⚡',category:'skill',damage:40,cooldown:600,range:130},
+    SKILL_POISON:{name:'劇毒',icon:'☠️',category:'skill',damage:25,cooldown:700,range:100,dps:10},
+    // 🟡 陣地石 (Operator)
+    OP_TNK:{name:'重裝',icon:'🛡️',category:'operator',hp:500,atk:15,range:60,block:3,cost:5,color:0x4a90d9},
+    OP_MEL:{name:'近衛',icon:'⚔️',category:'operator',hp:300,atk:25,range:70,block:2,cost:4,color:0xd94a4a},
+    OP_RNG:{name:'狙擊',icon:'🏹',category:'operator',hp:150,atk:35,range:150,block:0,cost:4,color:0x4ad94a},
+    OP_MAG:{name:'術士',icon:'🔮',category:'operator',hp:120,atk:40,range:120,block:0,cost:5,color:0x9b4ad9},
+    OP_HEAL:{name:'醫療',icon:'💚',category:'operator',hp:100,atk:5,range:80,block:0,cost:3,color:0x4ad94a,heal:20},
+    // 🔵 輔助石
+    SUPPORT_MULTI:{name:'多重',icon:'🎯',category:'support',multi:2},
+    SUPPORT_RANGE:{name:'擴展',icon:'📐',category:'support',rangeBonus:1.3},
+    SUPPORT_SPEED:{name:'加速',icon:'⚡',category:'support',speedBonus:1.2},
+    SUPPORT_DAMAGE:{name:'增傷',icon:'💪',category:'support',dmgBonus:1.5}
+};
+
+// 8 個裝備欄位 (依 GDD 規格)
+const EQUIPMENT_SLOTS = {
+    '雙手武器':{sockets:6,links:6,icon:'⚔️'},
+    '胸甲':{sockets:6,links:6,icon:'🛡️'},
+    '頭盔':{sockets:4,links:4,icon:'⛑️'},
+    '手套':{sockets:4,links:4,icon:'🧤'},
+    '鞋子':{sockets:4,links:4,icon:'👢'},
+    '主手':{sockets:3,links:3,icon:'🗡️'},
+    '副手':{sockets:3,links:3,icon:'🛡️'},
+    '項鍊':{sockets:0,links:0,icon:'📿'},
+    '戒指':{sockets:0,links:0,icon:'💍'}
 };
 
 class EquipmentSystem {
-    constructor(){this.gems={weapon:[GEM_TYPES.SKILL_FIREBALL],armor:[GEM_TYPES.OP_RNG],helmet:[GEM_TYPES.SKILL_LIGHTNING]};this.links=[{socketIndex:0,gem:this.gems.weapon[0]},{socketIndex:1,gem:this.gems.armor[0]},{socketIndex:2,gem:this.gems.helmet[0]}];}
-    getHeroSkills(){return this.links.filter(l=>l.gem.type==='skill').map(l=>({...l.gem,linkIndex:l.socketIndex}));}
+    constructor(){
+        // 初始裝備
+        this.equipment={
+            '雙手武器':[GEM_TYPES.SKILL_FIREBALL],
+            '胸甲':[GEM_TYPES.OP_RNG],
+            '頭盔':[GEM_TYPES.SKILL_LIGHTNING],
+            '手套':[],
+            '鞋子':[],
+            '主手':[GEM_TYPES.SUPPORT_MULTI],
+            '副手':[],
+            '項鍊':[],
+            '戒指':[]
+        };
+    }
+    // 獲取所有技能（已部署的 operator 技能 + 英雄身上的 skill）
+    getActiveSkills(){const skills=[];for(const slot in this.equipment){for(const gem of this.equipment[slot]){if(gem.category==='skill')skills.push({...gem,slot});}}return skills;}
+    // 獲取可部署的 operators
+    getDeployableOperators(){const ops=[];for(const slot in this.equipment){for(const gem of this.equipment[slot]){if(gem.category==='operator')ops.push({...gem,slot});}}return ops;}
+    // 獲取所有裝備
+    getEquipmentList(){const list=[];for(const slot in this.equipment){const sockets=EQUIPMENT_SLOTS[slot].sockets;for(let i=0;i<sockets;i++){const gem=this.equipment[slot][i]||null;list.push({slot,index:i,gem});}}return list;}
 }
 
 class AStar {
@@ -120,11 +161,63 @@ class MainScene extends Phaser.Scene {
     toggleInventory(){
         if(this.inventoryUI){this.inventoryUI.destroy();this.inventoryUI=null;return;}
         this.inventoryUI=this.add.container(0,0).setDepth(50);
-        this.inventoryUI.add(this.add.rectangle(400,300,500,400,0x000,0.95));
-        this.inventoryUI.add(this.add.text(400,80,'🎒 背包',{fontSize:'28px',color:'#fff',fontStyle:'bold'}).setOrigin(0.5));
+        // 背景
+        this.inventoryUI.add(this.add.rectangle(400,300,700,500,0x1a1a2e,0.97));
+        this.inventoryUI.add(this.add.rectangle(400,300,680,480,0x2a2a4e,0.9).setStrokeStyle(2,0x4ecdc4));
+        // 標題
+        this.inventoryUI.add(this.add.text(400,40,'⚔️ 裝備欄位 (按 B 關閉)',{fontSize:'24px',color:'#fff',fontStyle:'bold'}).setOrigin(0.5));
+        // 顯示 8 個裝備欄位 (PoE 風格布局)
+        const slotOrder=['雙手武器','胸甲','頭盔','手套','鞋子','主手','副手','項鍊','戒指'];
+        const slotLayout={
+            '雙手武器':{x:150,y:120},'胸甲':{x:150,y:220},
+            '頭盔':{x:150,y:320},'手套':{x:150,y:420},
+            '鞋子':{x:400,y:120},'主手':{x:400,y:220},
+            '副手':{x:400,y:320},'項鍊':{x:400,y:420},
+            '戒指':{x:550,y:420}
+        };
+        for(const slotName of slotOrder){
+            const slot=EQUIPMENT_SLOTS[slotName];
+            const pos=slotLayout[slotName];
+            // 欄位框
+            const sockets=slot.sockets;
+            const boxW=sockets*28+8,boxH=36;
+            this.inventoryUI.add(this.add.rectangle(pos.x+boxW/2-14,pos.y,boxW,boxH,0x333,0.8).setStrokeStyle(1,sockets>0?0x4ecdc4:0x666));
+            // 欄位名
+            this.inventoryUI.add(this.add.text(pos.x-40,pos.y,slot.icon,{fontSize:'20px'}).setOrigin(0.5));
+            this.inventoryUI.add(this.add.text(pos.x-40,pos.y+18,slotName,{fontSize:'10px',color:'#888'}).setOrigin(0.5));
+            // 插槽
+            const gems=this.equipment.equipment[slotName]||[];
+            for(let i=0;i<sockets;i++){
+                const gem=gems[i];
+                const sx=pos.x+i*28;
+                const bg=this.add.rectangle(sx,pos.y,24,24,gem?0x222:0x111,0.6).setStrokeStyle(1,gem?(gem.category==='skill'?0xff6b35:gem.category==='operator'?0x4ecdc4:0x8888ff):0x444);
+                this.inventoryUI.add(bg);
+                if(gem){
+                    const catColor=gem.category==='skill'?'#ff6b35':gem.category==='operator'?'#4ecdc4':'#8888ff';
+                    this.inventoryUI.add(this.add.text(sx-6,pos.y-6,gem.icon,{fontSize:'14px'}).setOrigin(0));
+                    this.inventoryUI.add(this.add.text(sx,pos.y+16,gem.name.substring(0,3),{fontSize:'8px',color:catColor}).setOrigin(0.5));
+                }
+            }
+            // 連線數
+            if(slot.links>0){
+                this.inventoryUI.add(this.add.text(pos.x+sockets*28+5,pos.y,`🔗${slot.links}`,{fontSize:'10px',color:'#4ecdc4'}).setOrigin(0,0.5));
+            }
+        }
+        // 右側：可用寶石列表
+        this.inventoryUI.add(this.add.text(580,80,'💎 可用寶石',{fontSize:'14px',color:'#fff'}).setOrigin(0.5));
+        let y=110;
+        for(const key in GEM_TYPES){
+            const gem=GEM_TYPES[key];
+            const catColor=gem.category==='skill'?'#ff6b35':gem.category==='operator'?'#4ecdc4':'#8888ff';
+            this.inventoryUI.add(this.add.text(580,y,gem.icon+' '+gem.name,{fontSize:'12px',color:catColor}).setOrigin(0,0.5));
+            y+=20;
+        }
+        // 掉落物品
+        this.inventoryUI.add(this.add.text(580,380,'🎒 背包',{fontSize:'14px',color:'#fff'}).setOrigin(0.5));
         const items=this.gameState.inventory.length>0?this.gameState.inventory:['(空)'];
-        for(let i=0;i<items.length;i++){this.inventoryUI.add(this.add.text(400,150+i*35,items[i],{fontSize:'18px',color:'#00ffff'}).setOrigin(0.5));}
-        this.inventoryUI.add(this.add.text(400,370,'按 B 關閉',{fontSize:'14px',color:'#888'}).setOrigin(0.5));
+        for(let i=0;i<items.length;i++){
+            this.inventoryUI.add(this.add.text(580,405+i*20,items[i],{fontSize:'12px',color:'#00ffff'}).setOrigin(0,0.5));
+        }
     }
     createSkillBar(){
         const barY=560,barX=600;
@@ -137,7 +230,7 @@ class MainScene extends Phaser.Scene {
     createGemUI(){this.add.text(300,530,'【靈樞】SPACE:',{fontSize:'12px',color:'#4ecdc4'});this.updateGemDisplay();}
     updateGemDisplay(){
         if(this.gemTexts)this.gemTexts.forEach(t=>t.destroy());this.gemTexts=[];
-        const skills=this.equipment.getHeroSkills();let x=320;
+        const skills=this.equipment.getActiveSkills();let x=320;
         for(let i=0;i<skills.length;i++){const s=skills[i],isActive=i===this.heroGemSkillIndex,c=isActive?'#0f0':'#888';this.gemTexts.push(this.add.rectangle(x,560,30,30,0x333,0.8).setStrokeStyle(2,c),this.add.text(x-8,552,s.icon,{fontSize:'16px'}));x+=35;}
     }
     updateWaveLogic(){
@@ -170,7 +263,7 @@ class MainScene extends Phaser.Scene {
         if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.TWO]))this.selectedOpType='OP_MEL';
         if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.THREE]))this.selectedOpType='OP_RNG';
         if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.FOUR]))this.selectedOpType='OP_MAG';
-        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.SPACE])){this.heroGemSkillIndex=(this.heroGemSkillIndex+1)%this.equipment.getHeroSkills().length;this.updateGemDisplay();}
+        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.SPACE])){this.heroGemSkillIndex=(this.heroGemSkillIndex+1)%this.equipment.getActiveSkills().length;this.updateGemDisplay();}
     }
     updateHero(delta,time){
         if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.Q]))this.useDash(time);
@@ -213,7 +306,7 @@ class MainScene extends Phaser.Scene {
         this.heroHpBar.x=this.heroSprite.x;this.heroHpBar.y=this.heroSprite.y-35;this.heroHpBar.width=40*(this.hero.hp/this.hero.maxHp);
     }
     useGemSkill(time){
-        const skills=this.equipment.getHeroSkills(),skill=skills[this.heroGemSkillIndex];
+        const skills=this.equipment.getActiveSkills(),skill=skills[this.heroGemSkillIndex];
         if(!skill)return;
         let target=null,minDist=skill.range;
         for(const e of this.gameState.enemies){const d=Phaser.Math.Distance.Between(this.heroSprite.x,this.heroSprite.y,e.sprite.x,e.sprite.y);if(d<minDist){minDist=d;target=e;}}
