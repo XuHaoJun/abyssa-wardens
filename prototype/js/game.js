@@ -158,7 +158,30 @@ class MainScene extends Phaser.Scene {
         this.restartBtn.on('pointerdown',()=>this.scene.restart());
     }
     togglePause(){this.gameState.isPaused=!this.gameState.isPaused;this.pauseMenuBg.setVisible(this.gameState.isPaused);this.pauseTitle.setVisible(this.gameState.isPaused);this.resumeBtn.setVisible(this.gameState.isPaused);this.restartBtn.setVisible(this.gameState.isPaused);}
-    toggleInventory(){
+    
+    equipFromInventory(index){
+        const itemName = this.gameState.inventory[index];
+        if(!itemName) return;
+        
+        for(const key in GEM_TYPES){
+            const gem = GEM_TYPES[key];
+            if(gem.icon+' '+gem.name === itemName){
+                let targetSlot = null;
+                if(gem.category === 'skill') targetSlot = '主手';
+                else if(gem.category === 'operator') targetSlot = '胸甲';
+                else if(gem.category === 'support') targetSlot = '手套';
+                
+                if(targetSlot && (!this.equipment.equipment[targetSlot] || this.equipment.equipment[targetSlot].length === 0)){
+                    this.equipment.equipment[targetSlot] = [gem];
+                    this.gameState.inventory.splice(index, 1);
+                    this.toggleInventory();
+                    return;
+                }
+            }
+        }
+    }
+
+toggleInventory(){
         if(this.inventoryUI){this.inventoryUI.destroy();this.inventoryUI=null;return;}
         this.inventoryUI=this.add.container(0,0).setDepth(50);
         this.inventoryUI.add(this.add.rectangle(400,300,760,540,0x111111,0.98));
@@ -189,6 +212,13 @@ class MainScene extends Phaser.Scene {
             this.inventoryUI.add(this.add.text(s.x, s.y+32, key, {fontSize:'11px',color:'#888'}).setOrigin(0.5));
             bg.on('pointerover', () => { if(gem) this.showItemTooltip(gem, s.x, s.y-35); });
             bg.on('pointerout', () => { if(this.tooltip){ this.tooltip.destroy(); this.tooltip = null; } });
+            bg.on('pointerdown', () => { 
+                if(gem && this.gameState.inventory.length < 30){
+                    this.gameState.inventory.push(gem.icon+' '+gem.name);
+                    this.equipment.equipment[key] = [];
+                    this.toggleInventory();
+                }
+            });
             this.inventoryUI.add(bg);
         }
         
@@ -202,6 +232,7 @@ class MainScene extends Phaser.Scene {
             bg.setInteractive();
             bg.on('pointerover', () => { if(item) this.showItemTooltip({name:item,desc:'擊殺掉落'},bx,by-25); });
             bg.on('pointerout', () => { if(this.tooltip){ this.tooltip.destroy(); this.tooltip = null; } });
+            bg.on('pointerdown', () => { this.equipFromInventory(i); });
             this.inventoryUI.add(bg);
         }
         
