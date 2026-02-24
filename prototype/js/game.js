@@ -110,7 +110,15 @@ class MainScene extends Phaser.Scene {
         this.input.on('pointerdown',this.handleClick,this);this.input.mouse.disableContextMenu();
     }
     update(time,delta){if(this.gameState.isGameOver||this.gameState.isPaused)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();if(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]))this.togglePause();if(this.keys[Phaser.Input.Keyboard.KeyCodes.B]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.B]))this.toggleInventory();}
-    drawBackground(){this.add.grid(400,300,800,600,CONFIG.tileSize,CONFIG.tileSize,0x1a1a2e,0.5,0x2a2a4e,0.3);}
+        handleClick(pointer){
+        if(this.gameState.isGameOver||this.gameState.isPaused||this.inventoryUI)return;
+        this.hero.targetX=pointer.x;
+        this.hero.targetY=pointer.y;
+        this.targetMarker.setPosition(pointer.x,pointer.y).setVisible(true);
+        this.attackRange.setPosition(pointer.x,pointer.y).setVisible(true);
+    }
+
+drawBackground(){this.add.grid(400,300,800,600,CONFIG.tileSize,CONFIG.tileSize,0x1a1a2e,0.5,0x2a2a4e,0.3);}
     drawPath(){
         this.pathPoints=[{x:0,y:7},{x:4,y:7},{x:4,y:3},{x:10,y:3},{x:10,y:11},{x:15,y:11},{x:15,y:7},{x:20,y:7}];
         const g=this.add.graphics();g.lineStyle(20,0x4a4a6e,1);g.beginPath();
