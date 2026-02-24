@@ -44,15 +44,15 @@ const EQUIPMENT_SLOTS = {
 
 class EquipmentSystem {
     constructor(){
-        // 初始裝備
+        // 初始裝備 - 每種物品各一個
         this.equipment={
             '雙手武器':[GEM_TYPES.SKILL_FIREBALL],
             '胸甲':[GEM_TYPES.OP_RNG],
             '頭盔':[GEM_TYPES.SKILL_LIGHTNING],
-            '手套':[],
-            '鞋子':[],
-            '主手':[GEM_TYPES.SUPPORT_MULTI],
-            '副手':[],
+            '手套':[GEM_TYPES.SUPPORT_DAMAGE],
+            '鞋子':[GEM_TYPES.SUPPORT_SPEED],
+            '主手':[GEM_TYPES.SKILL_POISON],
+            '副手':[GEM_TYPES.OP_HEAL],
             '項鍊':[],
             '戒指':[]
         };
@@ -161,63 +161,84 @@ class MainScene extends Phaser.Scene {
     toggleInventory(){
         if(this.inventoryUI){this.inventoryUI.destroy();this.inventoryUI=null;return;}
         this.inventoryUI=this.add.container(0,0).setDepth(50);
-        // 背景
-        this.inventoryUI.add(this.add.rectangle(400,300,700,500,0x1a1a2e,0.97));
-        this.inventoryUI.add(this.add.rectangle(400,300,680,480,0x2a2a4e,0.9).setStrokeStyle(2,0x4ecdc4));
-        // 標題
-        this.inventoryUI.add(this.add.text(400,40,'⚔️ 裝備欄位 (按 B 關閉)',{fontSize:'24px',color:'#fff',fontStyle:'bold'}).setOrigin(0.5));
-        // 顯示 8 個裝備欄位 (PoE 風格布局)
-        const slotOrder=['雙手武器','胸甲','頭盔','手套','鞋子','主手','副手','項鍊','戒指'];
-        const slotLayout={
-            '雙手武器':{x:150,y:120},'胸甲':{x:150,y:220},
-            '頭盔':{x:150,y:320},'手套':{x:150,y:420},
-            '鞋子':{x:400,y:120},'主手':{x:400,y:220},
-            '副手':{x:400,y:320},'項鍊':{x:400,y:420},
-            '戒指':{x:550,y:420}
-        };
-        for(const slotName of slotOrder){
-            const slot=EQUIPMENT_SLOTS[slotName];
-            const pos=slotLayout[slotName];
-            // 欄位框
-            const sockets=slot.sockets;
-            const boxW=sockets*28+8,boxH=36;
-            this.inventoryUI.add(this.add.rectangle(pos.x+boxW/2-14,pos.y,boxW,boxH,0x333,0.8).setStrokeStyle(1,sockets>0?0x4ecdc4:0x666));
-            // 欄位名
-            this.inventoryUI.add(this.add.text(pos.x-40,pos.y,slot.icon,{fontSize:'20px'}).setOrigin(0.5));
-            this.inventoryUI.add(this.add.text(pos.x-40,pos.y+18,slotName,{fontSize:'10px',color:'#888'}).setOrigin(0.5));
-            // 插槽
+        // 暗黑風格背景
+        this.inventoryUI.add(this.add.rectangle(400,300,750,520,0x0a0a0a,0.98));
+        this.inventoryUI.add(this.add.rectangle(400,300,740,510,0x1a1a1a,0.95).setStrokeStyle(3,0x8b0000));
+        // 左側：人物裝備 (暗黑風)
+        this.inventoryUI.add(this.add.text(150,35,'⛏️ 英雄裝備',{fontSize:'20px',color:'#c0c0c0',fontStyle:'bold'}).setOrigin(0.5));
+        // 裝備欄位 - 暗黑風人形布局
+        const equipSlots=[
+            {name:'頭盔',x:150,y:80,size:50},{name:'項鍊',x:220,y:80,size:40},
+            {name:'胸甲',x:150,y:150,size:60},{name:'護腕',x:220,y:150,size:40},
+            {name:'主手',x:100,y:230,size:50},{name:'副手',x:200,y:230,size:50},
+            {name:'腰帶',x:150,y:290,size:45},{name:'手套',x:220,y:290,size:40},
+            {name:'鞋子',x:100,y:350,size:45},{name:'戒指',x:180,y:350,size:35},{name:'戒指2',x:220,y:350,size:35},
+            {name:'雙手武器',x:150,y:420,size:70}
+        ];
+        for(const es of equipSlots){
+            const slotName=es.name==='戒指2'?'戒指':es.name;
             const gems=this.equipment.equipment[slotName]||[];
-            for(let i=0;i<sockets;i++){
-                const gem=gems[i];
-                const sx=pos.x+i*28;
-                const bg=this.add.rectangle(sx,pos.y,24,24,gem?0x222:0x111,0.6).setStrokeStyle(1,gem?(gem.category==='skill'?0xff6b35:gem.category==='operator'?0x4ecdc4:0x8888ff):0x444);
-                this.inventoryUI.add(bg);
-                if(gem){
-                    const catColor=gem.category==='skill'?'#ff6b35':gem.category==='operator'?'#4ecdc4':'#8888ff';
-                    this.inventoryUI.add(this.add.text(sx-6,pos.y-6,gem.icon,{fontSize:'14px'}).setOrigin(0));
-                    this.inventoryUI.add(this.add.text(sx,pos.y+16,gem.name.substring(0,3),{fontSize:'8px',color:catColor}).setOrigin(0.5));
+            const gem=gems[0];
+            const color=gem?(gem.category==='skill'?0xcf3210:gem.category==='operator'?0x10cf32:0x3210cf):0x333333;
+            const bg=this.add.rectangle(es.x,es.y,es.size,es.size,color,gem?0.9:0.4).setStrokeStyle(2,gem?0xffd700:0x555555);
+            bg.slotName=slotName;bg.gem=gem;
+            bg.setInteractive();
+            bg.on('pointerover',()=>{if(gem)this.showItemTooltip(gem,es.x,es.y-es.size);});
+            bg.on('pointerout',()=>{if(this.tooltip)this.tooltip.destroy();this.tooltip=null;});
+            this.inventoryUI.add(bg);
+            if(gem){
+                this.inventoryUI.add(this.add.text(es.x-es.size/2+2,es.y-es.size/2+2,gem.icon,{fontSize:es.size*0.5+'px'}).setOrigin(0));
+            }
+            this.inventoryUI.add(this.add.text(es.x,es.y+es.size/2+5,slotName,{fontSize:'10px',color:'#888'}).setOrigin(0.5));
+        }
+        // 中間分隔線
+        this.inventoryUI.add(this.add.rectangle(320,260,3,480,0x444,0.8));
+        // 右側：背包 (網格風格)
+        this.inventoryUI.add(this.add.text(550,35,'🎒 背包 (30格)',{fontSize:'20px',color:'#c0c0c0',fontStyle:'bold'}).setOrigin(0.5));
+        // 背包網格 6x5
+        for(let row=0;row<5;row++){
+            for(let col=0;col<6;col++){
+                const bx=430+col*40,by=80+row*45;
+                const idx=row*6+col;
+                const item=this.gameState.inventory[idx];
+                const bg=this.add.rectangle(bx,by,36,42,item?0x2a2a2a:0x1a1a1a,0.8).setStrokeStyle(1,item?0x00ffff:0x333333);
+                if(item){
+                    this.inventoryUI.add(this.add.text(bx-12,by-12,item,{fontSize:'16px'}).setOrigin(0));
                 }
+                bg.setInteractive();
+                bg.on('pointerover',()=>{if(item)this.showItemTooltip({name:item,desc:'擊殺掉落'},bx,by-30);});
+                bg.on('pointerout',()=>{if(this.tooltip)this.tooltip.destroy();this.tooltip=null;});
+                this.inventoryUI.add(bg);
             }
-            // 連線數
-            if(slot.links>0){
-                this.inventoryUI.add(this.add.text(pos.x+sockets*28+5,pos.y,`🔗${slot.links}`,{fontSize:'10px',color:'#4ecdc4'}).setOrigin(0,0.5));
-            }
         }
-        // 右側：可用寶石列表
-        this.inventoryUI.add(this.add.text(580,80,'💎 可用寶石',{fontSize:'14px',color:'#fff'}).setOrigin(0.5));
-        let y=110;
-        for(const key in GEM_TYPES){
-            const gem=GEM_TYPES[key];
-            const catColor=gem.category==='skill'?'#ff6b35':gem.category==='operator'?'#4ecdc4':'#8888ff';
-            this.inventoryUI.add(this.add.text(580,y,gem.icon+' '+gem.name,{fontSize:'12px',color:catColor}).setOrigin(0,0.5));
-            y+=20;
+        // 右側：可用Operators (可部署的幹員)
+        this.inventoryUI.add(this.add.text(550,360,'🛡️ 可部署單位',{fontSize:'16px',color:'#c0c0c0'}).setOrigin(0.5));
+        const ops=this.equipment.getDeployableOperators();
+        let oy=390;
+        for(const op of ops){
+            const opBg=this.add.rectangle(550,oy,180,30,0x2a4a2a,0.8).setStrokeStyle(1,0x00ff00);
+            this.inventoryUI.add(this.add.text(550-80,oy-5,op.icon+' '+op.name,{fontSize:'14px',color:'#4ecdc4'}).setOrigin(0));
+            this.inventoryUI.add(this.add.text(550+80,oy-5,`💰${op.cost}`,{fontSize:'12px',color:'#fd0'}).setOrigin(0.5));
+            opBg.setInteractive();
+            opBg.on('pointerover',()=>this.showItemTooltip(op,550,oy-25));
+            opBg.on('pointerout',()=>{if(this.tooltip)this.tooltip.destroy();this.tooltip=null;});
+            this.inventoryUI.add(opBg);
+            oy+=35;
         }
-        // 掉落物品
-        this.inventoryUI.add(this.add.text(580,380,'🎒 背包',{fontSize:'14px',color:'#fff'}).setOrigin(0.5));
-        const items=this.gameState.inventory.length>0?this.gameState.inventory:['(空)'];
-        for(let i=0;i<items.length;i++){
-            this.inventoryUI.add(this.add.text(580,405+i*20,items[i],{fontSize:'12px',color:'#00ffff'}).setOrigin(0,0.5));
-        }
+        // 底部說明
+        this.inventoryUI.add(this.add.text(400,500,'按 B 或 ESC 關閉 | 滑鼠懸停查看物品詳情',{fontSize:'12px',color:'#666'}).setOrigin(0.5));
+    }
+    showItemTooltip(item,x,y){
+        if(this.tooltip)this.tooltip.destroy();
+        this.tooltip=this.add.container(x,y).setDepth(100);
+        const lines=[item.name];
+        if(item.category==='skill'){lines.push('🔥 類型: 技能石');if(item.damage)lines.push('⚔️ 傷害: '+item.damage);if(item.range)lines.push('📏 範圍: '+item.range);if(item.cooldown)lines.push('⏱️ 冷卻: '+(item.cooldown/1000)+'秒');}
+        else if(item.category==='operator'){lines.push('🛡️ 類型: 陣地石');if(item.hp)lines.push('❤️ 生命: '+item.hp);if(item.atk)lines.push('⚔️ 攻擊: '+item.atk);if(item.range)lines.push('📏 範圍: '+item.range);if(item.block)lines.push('🚫 阻擋: '+item.block);if(item.cost)lines.push('💰 花費: '+item.cost);}
+        else if(item.category==='support'){lines.push('🔵 類型: 輔助石');if(item.dmgBonus)lines.push('💪 增傷: x'+item.dmgBonus);if(item.speedBonus)lines.push('⚡ 加速: x'+item.speedBonus);if(item.rangeBonus)lines.push('📏 範圍: x'+item.rangeBonus);}
+        else if(item.desc)lines.push(item.desc);
+        const h=lines.length*16+10,w=120;
+        this.tooltip.add(this.add.rectangle(0,0,w,h,0x000,0.95).setStrokeStyle(1,0xffd700));
+        for(let i=0;i<lines.length;i++){this.tooltip.add(this.add.text(-w/2+5,-h/2+8+i*16,lines[i],{fontSize:'11px',color:'#fff'}));}
     }
     createSkillBar(){
         const barY=560,barX=600;
