@@ -161,265 +161,63 @@ class MainScene extends Phaser.Scene {
     toggleInventory(){
         if(this.inventoryUI){this.inventoryUI.destroy();this.inventoryUI=null;return;}
         this.inventoryUI=this.add.container(0,0).setDepth(50);
-        // 暗黑風格背景
-        this.inventoryUI.add(this.add.rectangle(400,300,750,520,0x0a0a0a,0.98));
-        this.inventoryUI.add(this.add.rectangle(400,300,740,510,0x1a1a1a,0.95).setStrokeStyle(3,0x8b0000));
-        // 左側：人物裝備 (暗黑風)
-        this.inventoryUI.add(this.add.text(150,35,'⛏️ 英雄裝備',{fontSize:'20px',color:'#c0c0c0',fontStyle:'bold'}).setOrigin(0.5));
-        // 裝備欄位 - 暗黑風人形布局
-        const equipSlots=[
-            {name:'頭盔',x:150,y:80,size:50},{name:'項鍊',x:220,y:80,size:40},
-            {name:'胸甲',x:150,y:150,size:60},{name:'護腕',x:220,y:150,size:40},
-            {name:'主手',x:100,y:230,size:50},{name:'副手',x:200,y:230,size:50},
-            {name:'腰帶',x:150,y:290,size:45},{name:'手套',x:220,y:290,size:40},
-            {name:'鞋子',x:100,y:350,size:45},{name:'戒指',x:180,y:350,size:35},{name:'戒指2',x:220,y:350,size:35},
-            {name:'雙手武器',x:150,y:420,size:70}
+        this.inventoryUI.add(this.add.rectangle(400,300,760,540,0x111111,0.98));
+        this.inventoryUI.add(this.add.text(400,25,'背包與裝備',{fontSize:'22px',color:'#ffd700',fontStyle:'bold'}).setOrigin(0.5));
+        
+        const slots = [
+            {name:'頭盔',x:180,y:80},{name:'項鍊',x:250,y:80},
+            {name:'胸甲',x:180,y:150},{name:'護腕',x:250,y:150},
+            {name:'腰帶',x:180,y:220},
+            {name:'主手',x:110,y:300},{name:'副手',x:250,y:300},
+            {name:'手套',x:110,y:370},{name:'鞋子',x:250,y:370},
+            {name:'戒指',x:110,y:440},{name:'戒指',x:250,y:440},
         ];
-        for(const es of equipSlots){
-            const slotName=es.name==='戒指2'?'戒指':es.name;
-            const gems=this.equipment.equipment[slotName]||[];
-            const gem=gems[0];
-            const color=gem?(gem.category==='skill'?0xcf3210:gem.category==='operator'?0x10cf32:0x3210cf):0x333333;
-            const bg=this.add.rectangle(es.x,es.y,es.size,es.size,color,gem?0.9:0.4).setStrokeStyle(2,gem?0xffd700:0x555555);
-            bg.slotName=slotName;bg.gem=gem;
+        
+        for(const s of slots){
+            const key = s.name;
+            const gems = this.equipment.equipment[key] || [];
+            const gem = gems[0];
+            const hasGem = !!gem;
+            const bg = this.add.rectangle(s.x, s.y, 50, 50, hasGem ? (gem.category==='skill'?0x3a2010:gem.category==='operator'?0x102a20:0x10103a) : 0x1a1a1a, 0.9)
+                .setStrokeStyle(hasGem ? 3 : 2, hasGem ? 0xffd700 : 0x555555);
             bg.setInteractive();
-            bg.on('pointerover',()=>{if(gem)this.showItemTooltip(gem,es.x,es.y-es.size);});
-            bg.on('pointerout',()=>{if(this.tooltip)this.tooltip.destroy();this.tooltip=null;});
+            if(hasGem){
+                this.inventoryUI.add(this.add.text(s.x-20, s.y-20, gem.icon, {fontSize:'26px'}));
+            } else {
+                this.inventoryUI.add(this.add.text(s.x-12, s.y-6, 'EMPTY', {fontSize:'10px', color:'#444'}));
+            }
+            this.inventoryUI.add(this.add.text(s.x, s.y+32, key, {fontSize:'11px',color:'#888'}).setOrigin(0.5));
+            bg.on('pointerover', () => { if(gem) this.showItemTooltip(gem, s.x, s.y-35); });
+            bg.on('pointerout', () => { if(this.tooltip){ this.tooltip.destroy(); this.tooltip = null; } });
             this.inventoryUI.add(bg);
-            if(gem){
-                this.inventoryUI.add(this.add.text(es.x-es.size/2+2,es.y-es.size/2+2,gem.icon,{fontSize:es.size*0.5+'px'}).setOrigin(0));
-            }
-            this.inventoryUI.add(this.add.text(es.x,es.y+es.size/2+5,slotName,{fontSize:'10px',color:'#888'}).setOrigin(0.5));
         }
-        // 中間分隔線
-        this.inventoryUI.add(this.add.rectangle(320,260,3,480,0x444,0.8));
-        // 右側：背包 (網格風格)
-        this.inventoryUI.add(this.add.text(550,35,'🎒 背包 (30格)',{fontSize:'20px',color:'#c0c0c0',fontStyle:'bold'}).setOrigin(0.5));
-        // 背包網格 6x5
-        for(let row=0;row<5;row++){
-            for(let col=0;col<6;col++){
-                const bx=430+col*40,by=80+row*45;
-                const idx=row*6+col;
-                const item=this.gameState.inventory[idx];
-                const bg=this.add.rectangle(bx,by,36,42,item?0x2a2a2a:0x1a1a1a,0.8).setStrokeStyle(1,item?0x00ffff:0x333333);
-                if(item){
-                    this.inventoryUI.add(this.add.text(bx-12,by-12,item,{fontSize:'16px'}).setOrigin(0));
-                }
-                bg.setInteractive();
-                bg.on('pointerover',()=>{if(item)this.showItemTooltip({name:item,desc:'擊殺掉落'},bx,by-30);});
-                bg.on('pointerout',()=>{if(this.tooltip)this.tooltip.destroy();this.tooltip=null;});
-                this.inventoryUI.add(bg);
-            }
+        
+        this.inventoryUI.add(this.add.text(560,40,'背包',{fontSize:'16px',color:'#c0c0c0'}).setOrigin(0.5));
+        for(let i=0;i<30;i++){
+            const row=Math.floor(i/6),col=i%6;
+            const bx=430+col*45,by=70+row*45;
+            const item=this.gameState.inventory[i];
+            const bg=this.add.rectangle(bx,by,40,40,item?0x2a2a2a:0x151515,0.9).setStrokeStyle(1,item?0x00ffff:0x333333);
+            if(item) this.inventoryUI.add(this.add.text(bx-10,by-10,item,{fontSize:'18px'}));
+            bg.setInteractive();
+            bg.on('pointerover', () => { if(item) this.showItemTooltip({name:item,desc:'擊殺掉落'},bx,by-25); });
+            bg.on('pointerout', () => { if(this.tooltip){ this.tooltip.destroy(); this.tooltip = null; } });
+            this.inventoryUI.add(bg);
         }
-        // 右側：可用Operators (可部署的幹員)
-        this.inventoryUI.add(this.add.text(550,360,'🛡️ 可部署單位',{fontSize:'16px',color:'#c0c0c0'}).setOrigin(0.5));
-        const ops=this.equipment.getDeployableOperators();
-        let oy=390;
-        for(const op of ops){
-            const opBg=this.add.rectangle(550,oy,180,30,0x2a4a2a,0.8).setStrokeStyle(1,0x00ff00);
-            this.inventoryUI.add(this.add.text(550-80,oy-5,op.icon+' '+op.name,{fontSize:'14px',color:'#4ecdc4'}).setOrigin(0));
-            this.inventoryUI.add(this.add.text(550+80,oy-5,`💰${op.cost}`,{fontSize:'12px',color:'#fd0'}).setOrigin(0.5));
-            opBg.setInteractive();
-            opBg.on('pointerover',()=>this.showItemTooltip(op,550,oy-25));
-            opBg.on('pointerout',()=>{if(this.tooltip)this.tooltip.destroy();this.tooltip=null;});
-            this.inventoryUI.add(opBg);
-            oy+=35;
-        }
-        // 底部說明
-        this.inventoryUI.add(this.add.text(400,500,'按 B 或 ESC 關閉 | 滑鼠懸停查看物品詳情',{fontSize:'12px',color:'#666'}).setOrigin(0.5));
+        
+        this.inventoryUI.add(this.add.text(400,520,'按 B 關閉',{fontSize:'12px',color:'#666'}).setOrigin(0.5));
+        this.inventoryUI.add(this.add.text(560,520,'金幣: '+this.gameState.gold,{fontSize:'12px',color:'#ffd700'}).setOrigin(0.5));
     }
     showItemTooltip(item,x,y){
         if(this.tooltip)this.tooltip.destroy();
         this.tooltip=this.add.container(x,y).setDepth(100);
         const lines=[item.name];
-        if(item.category==='skill'){lines.push('🔥 類型: 技能石');if(item.damage)lines.push('⚔️ 傷害: '+item.damage);if(item.range)lines.push('📏 範圍: '+item.range);if(item.cooldown)lines.push('⏱️ 冷卻: '+(item.cooldown/1000)+'秒');}
-        else if(item.category==='operator'){lines.push('🛡️ 類型: 陣地石');if(item.hp)lines.push('❤️ 生命: '+item.hp);if(item.atk)lines.push('⚔️ 攻擊: '+item.atk);if(item.range)lines.push('📏 範圍: '+item.range);if(item.block)lines.push('🚫 阻擋: '+item.block);if(item.cost)lines.push('💰 花費: '+item.cost);}
-        else if(item.category==='support'){lines.push('🔵 類型: 輔助石');if(item.dmgBonus)lines.push('💪 增傷: x'+item.dmgBonus);if(item.speedBonus)lines.push('⚡ 加速: x'+item.speedBonus);if(item.rangeBonus)lines.push('📏 範圍: x'+item.rangeBonus);}
+        if(item.category==='skill'){lines.push('🔥 技能');if(item.damage)lines.push('⚔️ '+item.damage);if(item.range)lines.push('📏 '+item.range);}
+        else if(item.category==='operator'){lines.push('🛡️ 幹員');if(item.hp)lines.push('❤️ '+item.hp);if(item.atk)lines.push('⚔️ '+item.atk);if(item.cost)lines.push('💰 '+item.cost);}
+        else if(item.category==='support'){lines.push('🔵 輔助');if(item.dmgBonus)lines.push('💪 x'+item.dmgBonus);}
         else if(item.desc)lines.push(item.desc);
-        const h=lines.length*16+10,w=120;
+        const h=lines.length*15+8,w=100;
         this.tooltip.add(this.add.rectangle(0,0,w,h,0x000,0.95).setStrokeStyle(1,0xffd700));
-        for(let i=0;i<lines.length;i++){this.tooltip.add(this.add.text(-w/2+5,-h/2+8+i*16,lines[i],{fontSize:'11px',color:'#fff'}));}
+        for(let i=0;i<lines.length;i++)this.tooltip.add(this.add.text(-w/2+4,-h/2+6+i*14,lines[i],{fontSize:'10px',color:'#fff'}));
     }
-    createSkillBar(){
-        const barY=560,barX=600;
-        this.skillQ=this.add.rectangle(barX,barY,36,36,0x4ecdc4).setStrokeStyle(2,'#0f0');
-        this.skillE=this.add.rectangle(barX+50,barY,36,36,0xffe66d).setStrokeStyle(2,'#0f0');
-        this.skillR=this.add.rectangle(barX+100,barY,36,36,0xff6b35).setStrokeStyle(2,'#0f0');
-        this.add.text(barX-12,barY-8,'Q',{fontSize:'20px',fontStyle:'bold',color:'#000'});this.add.text(barX+38,barY-8,'E',{fontSize:'20px',fontStyle:'bold',color:'#000'});this.add.text(barX+88,barY-8,'R',{fontSize:'20px',fontStyle:'bold',color:'#000'});
-        this.skillQCD=this.add.rectangle(barX,barY,36,36,0x000,0.7).setVisible(false);this.skillRCD=this.add.rectangle(barX+100,barY,36,36,0x000,0.7).setVisible(false);
-    }
-    createGemUI(){this.add.text(300,530,'【靈樞】SPACE:',{fontSize:'12px',color:'#4ecdc4'});this.updateGemDisplay();}
-    updateGemDisplay(){
-        if(this.gemTexts)this.gemTexts.forEach(t=>t.destroy());this.gemTexts=[];
-        const skills=this.equipment.getActiveSkills();let x=320;
-        for(let i=0;i<skills.length;i++){const s=skills[i],isActive=i===this.heroGemSkillIndex,c=isActive?'#0f0':'#888';this.gemTexts.push(this.add.rectangle(x,560,30,30,0x333,0.8).setStrokeStyle(2,c),this.add.text(x-8,552,s.icon,{fontSize:'16px'}));x+=35;}
-    }
-    updateWaveLogic(){
-        if(this.waveConfig.isBreak)return;
-        if(this.waveConfig.enemiesSpawned>=this.waveConfig.enemiesPerWave&&this.gameState.enemies.length===0){
-            this.waveConfig.isBreak=true;
-            this.nextWaveText.setText(`波次${this.waveConfig.current}完成!\n準備下一波...`);this.nextWaveText.setVisible(true);
-            this.time.delayedCall(this.waveConfig.breakTime,()=>{this.waveConfig.current++;this.waveConfig.enemiesSpawned=0;this.waveConfig.enemiesPerWave=5+this.waveConfig.current*2;this.waveConfig.isBreak=false;this.nextWaveText.setVisible(false);this.showMessage(`🌊波次${this.waveConfig.current}開始!`,400,100,'#4ecdc4');});
-        }
-    }
-    spawnEnemy(){
-        if(this.gameState.isGameOver||this.waveConfig.isBreak)return;
-        if(this.waveConfig.enemiesSpawned>=this.waveConfig.enemiesPerWave)return;
-        this.waveConfig.enemiesSpawned++;
-        let types=[{name:'哥',hp:50,speed:40,color:0x0f0,reward:10},{name:'獸',hp:100,speed:30,color:0xf80,reward:20},{name:'幽',hp:40,speed:50,color:0x80f,reward:15}];
-        if(this.waveConfig.current>=3&&Math.random()<0.15+(this.waveConfig.current-3)*0.05){
-            const affixKeys=Object.keys(ELITE_AFFIXES),affixKey=affixKeys[Math.floor(Math.random()*affixKeys.length)],affix=ELITE_AFFIXES[affixKey];
-            types=[{name:affix.icon+'精英',hp:150*(affix.hpBonus||1),speed:35,color:affix.color,reward:30,isElite:true,affix:affix}];
-        }
-        const t=types[Math.floor(Math.random()*types.length)],sp=this.pathPoints[0];
-        const e={sprite:this.add.circle(sp.x*40,sp.y*40+20,t.isElite?18:15,t.color),text:this.add.text(sp.x*40-10,sp.y*40+15,t.name,{fontSize:'12px',color:'#fff'}),hp:t.hp,maxHp:t.hp,speed:t.speed,reward:t.reward,pathIndex:0,blocked:false,isElite:t.isElite||false,affix:t.affix||null,slowTimer:0,healTimer:0};
-        this.gameState.enemies.push(e);
-    }
-    updateSkills(time){
-        const s=this.hero.skills;
-        if(!s.dash.ready){const cd=Math.max(0,(s.dash.lastUsed+s.dash.cd)-time);if(cd>0){this.skillQCD.setVisible(true);this.skillQCD.height=36*(cd/s.dash.cd);}else{s.dash.ready=true;this.skillQCD.setVisible(false);this.skillQ.setStrokeStyle(2,'#0f0');}}
-        if(!s.ultimate.ready){const cd=Math.max(0,(s.ultimate.lastUsed+s.ultimate.cd)-time);if(cd>0){this.skillRCD.setVisible(true);this.skillRCD.height=36*(cd/s.ultimate.cd);}else{s.ultimate.ready=true;this.skillRCD.setVisible(false);this.skillR.setStrokeStyle(2,'#0f0');}}
-        this.ultBar.width=100*(s.ultimate.charge/s.ultimate.max);this.ultBar.x=50+50*(s.ultimate.charge/s.ultimate.max);
-        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.ONE]))this.selectedOpType='OP_TNK';
-        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.TWO]))this.selectedOpType='OP_MEL';
-        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.THREE]))this.selectedOpType='OP_RNG';
-        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.FOUR]))this.selectedOpType='OP_MAG';
-        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.SPACE])){this.heroGemSkillIndex=(this.heroGemSkillIndex+1)%this.equipment.getActiveSkills().length;this.updateGemDisplay();}
-    }
-    updateHero(delta,time){
-        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.Q]))this.useDash(time);
-        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.E]))this.useGemSkill(time);
-        if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.R]))this.useUltimate(time);
-        if(this.hero.targetPath.length>0){
-            const t=this.hero.targetPath[this.hero.pathIndex],tx=t.x*40+20,ty=t.y*40+20,dx=tx-this.heroSprite.x,dy=ty-this.heroSprite.y,d=Math.sqrt(dx*dx+dy*dy);
-            if(d<5){this.hero.pathIndex++;if(this.hero.pathIndex>=this.hero.targetPath.length){this.hero.targetPath=[];this.targetMarker.setVisible(false);this.attackRange.setVisible(false);}}
-            else{const sp=this.hero.isDashing?this.hero.speed*2.5:this.hero.speed;this.heroSprite.x+=dx/d*sp*delta/1000;this.heroSprite.y+=dy/d*sp*delta/1000;}
-        }
-        // 直接移動到目標點
-        if(this.hero.targetX!==undefined){
-            const dx=this.hero.targetX-this.heroSprite.x,dy=this.hero.targetY-this.heroSprite.y,d=Math.sqrt(dx*dx+dy*dy);
-            if(d>5){
-                const sp=this.hero.speed*delta/1000;
-                this.heroSprite.x+=dx/d*Math.min(sp,d);
-                this.heroSprite.y+=dy/d*Math.min(sp,d);
-            }else{this.hero.targetX=undefined;this.hero.targetY=undefined;this.targetMarker.setVisible(false);this.attackRange.setVisible(false);}
-        }
-        this.heroSprite.x=Phaser.Math.Clamp(this.heroSprite.x,20,780);this.heroSprite.y=Phaser.Math.Clamp(this.heroSprite.y,20,550);
-        // 自動普攻
-        this.hero.autoAttackTimer+=delta;
-        if(this.hero.autoAttackTimer>=this.hero.skills.basic.cd){
-            let target=null,minDist=this.hero.skills.basic.range;
-            for(const e of this.gameState.enemies){
-                const d=Phaser.Math.Distance.Between(this.heroSprite.x,this.heroSprite.y,e.sprite.x,e.sprite.y);
-                if(d<minDist){minDist=d;target=e;}
-            }
-            if(target){
-                this.hero.autoAttackTimer=0;
-                const g=this.add.graphics();
-                g.lineStyle(2,0xff6b35,0.8);g.lineBetween(this.heroSprite.x,this.heroSprite.y,target.sprite.x,target.sprite.y);
-                this.time.delayedCall(80,()=>g.destroy());
-                target.hp-=this.hero.skills.basic.dmg;
-                this.showDamage(target.sprite.x,target.sprite.y-15,this.hero.skills.basic.dmg,'#ffa500');
-                if(target.hp<=0)this.killEnemy(target,true);
-            }
-        }
-        this.heroText.x=this.heroSprite.x-15;this.heroText.y=this.heroSprite.y-5;
-        this.heroHpBar.x=this.heroSprite.x;this.heroHpBar.y=this.heroSprite.y-35;this.heroHpBar.width=40*(this.hero.hp/this.hero.maxHp);
-    }
-    useGemSkill(time){
-        const skills=this.equipment.getActiveSkills(),skill=skills[this.heroGemSkillIndex];
-        if(!skill)return;
-        let target=null,minDist=skill.range;
-        for(const e of this.gameState.enemies){const d=Phaser.Math.Distance.Between(this.heroSprite.x,this.heroSprite.y,e.sprite.x,e.sprite.y);if(d<minDist){minDist=d;target=e;}}
-        if(target){const g=this.add.graphics();g.lineStyle(3,0xff6b35,1);g.lineBetween(this.heroSprite.x,this.heroSprite.y,target.sprite.x,target.sprite.y);this.time.delayedCall(100,()=>g.destroy());target.hp-=skill.damage;this.showDamage(target.sprite.x,target.sprite.y-20,skill.damage);this.hero.skills.ultimate.charge=Math.min(100,this.hero.skills.ultimate.charge+5);if(target.hp<=0)this.killEnemy(target,true);}
-    }
-    useDash(time){
-        if(!this.hero.skills.dash.ready)return;
-        const p=this.input.activePointer;this.hero.isDashing=true;this.hero.skills.dash.lastUsed=time;this.hero.skills.dash.ready=false;
-        const dx=p.x-this.heroSprite.x,dy=p.y-this.heroSprite.y,d=Math.sqrt(dx*dx+dy*dy);
-        if(d>0){const dd=Math.min(120,d);this.heroSprite.x+=dx/d*dd;this.heroSprite.y+=dy/d*dd;}
-        for(const e of this.gameState.enemies){if(Phaser.Math.Distance.Between(this.heroSprite.x,this.heroSprite.y,e.sprite.x,e.sprite.y)<50){e.hp-=20;this.showDamage(e.sprite.x,e.sprite.y-20,20);if(e.hp<=0)this.killEnemy(e,true);}}
-        this.time.delayedCall(300,()=>this.hero.isDashing=false);
-    }
-    useUltimate(time){
-        if(!this.hero.skills.ultimate.ready||this.hero.skills.ultimate.charge<100)return;
-        this.hero.skills.ultimate.lastUsed=time;this.hero.skills.ultimate.ready=false;this.hero.skills.ultimate.charge=0;
-        const r=this.hero.skills.ultimate.range,g=this.add.circle(this.heroSprite.x,this.heroSprite.y,r,0xff6b35,0.3);
-        for(const e of this.gameState.enemies){if(Phaser.Math.Distance.Between(this.heroSprite.x,this.heroSprite.y,e.sprite.x,e.sprite.y)<r){e.hp-=200;this.showDamage(e.sprite.x,e.sprite.y-20,200);if(e.hp<=0)this.killEnemy(e,true);}}
-        this.cameras.main.shake(200,0.01);this.time.delayedCall(500,()=>g.destroy());
-    }
-    handleClick(pointer){
-        if(this.gameState.isGameOver||this.gameState.isPaused)return;
-        if(this.inventoryUI)return; // 背包開啟時不移動
-        // 直接移動到點擊位置
-        this.hero.targetX=pointer.x;
-        this.hero.targetY=pointer.y;
-        this.hero.targetPath=[]; // 清除路徑
-        this.targetMarker.setPosition(pointer.x,pointer.y).setVisible(true);
-        this.attackRange.setPosition(pointer.x,pointer.y).setVisible(true);
-    }
-    deployTower(pd,idx){
-        const gem=GEM_TYPES[this.selectedOpType];
-        if(this.deploymentPoints<gem.cost||this.gameState.towers[idx])return;
-        const isHigh=pd.type==='highground';
-        if(isHigh&&(this.selectedOpType==='OP_TNK'||this.selectedOpType==='OP_MEL'))return;
-        if(!isHigh&&(this.selectedOpType==='OP_RNG'||this.selectedOpType==='OP_MAG'))return;
-        this.deploymentPoints-=gem.cost;gem.isDeployed=true;
-        const tower={gem:gem,sprite:this.add.rectangle(pd.x,pd.y,35,35,gem.color).setInteractive(),text:this.add.text(pd.x-10,pd.y-8,gem.icon,{fontSize:'16px'}),hp:gem.hp*1.3,maxHp:gem.hp*1.3,atk:gem.atk*1.3,range:gem.range,block:gem.block,cost:gem.cost,attackCooldown:0,pointIndex:idx,hpBar:this.add.rectangle(pd.x,pd.y-30,30,4,0x0f0),rangeG:this.add.circle(pd.x,pd.y,gem.range,gem.color,0.1).setVisible(false)};
-        tower.sprite.on('pointerover',()=>tower.rangeG.setVisible(true));tower.sprite.on('pointerout',()=>tower.rangeG.setVisible(false));
-        this.gameState.towers[idx]=tower;
-    }
-    updateBlockers(){for(const e of this.gameState.enemies)e.blocked=false;for(const t of this.gameState.towers){if(!t)continue;const blocked=this.gameState.enemies.filter(e=>!e.blocked&&Phaser.Math.Distance.Between(t.sprite.x,t.sprite.y,e.sprite.x,e.sprite.y)<t.range+20);for(let i=0;i<Math.min(blocked.length,t.block);i++)blocked[i].blocked=true;}}
-    updateEnemies(delta,time){
-        for(let i=this.gameState.enemies.length-1;i>=0;i--){
-            const e=this.gameState.enemies[i];
-            // 沼澤減速
-            let terrainMod=1;
-            const ex=Math.floor(e.sprite.x/40),ey=Math.floor(e.sprite.y/40);
-            for(const t of this.terrain){if(t.x===ex&&t.y===ey){terrainMod=t.speedMod;break;}}
-            // 陷阱
-            for(const tr of this.traps){
-                if(tr.active&&Phaser.Math.Distance.Between(e.sprite.x,e.sprite.y,tr.x*40+20,tr.y*40+20)<25){
-                    if(time-tr.lastTrigger>tr.cooldown){tr.lastTrigger=time;e.hp-=tr.damage;this.showDamage(e.sprite.x,e.sprite.y-30,tr.damage);if(e.hp<=0){this.killEnemy(e,true);continue;}}
-                }
-            }
-            if(e.affix&&e.affix.name==='冰'&&e.slowTimer>0)e.slowTimer-=delta;
-            if(e.affix&&e.affix.name==='癒'){e.healTimer=(e.healTimer||0)+delta;if(e.healTimer>1000){e.hp=Math.min(e.maxHp,e.hp+5);e.healTimer=0;}}
-            let currentSpeed=e.speed*terrainMod;if(e.slowTimer>0)currentSpeed*=0.7;
-            if(e.blocked&&e.blocker&&e.blocker.hp>0){e.blocker.hp-=0.5*delta/1000;e.blocker.hpBar.width=30*(e.blocker.hp/e.blocker.maxHp);if(e.blocker.hp<=0){if(e.blocker.gem)e.blocker.gem.isDeployed=false;e.blocker.sprite.destroy();e.blocker.text.destroy();e.blocker.hpBar.destroy();e.blocker.rangeG.destroy();this.gameState.towers[e.blocker.pointIndex]=null;}continue;}
-            const tp=this.pathPoints[e.pathIndex+1];
-            if(!tp){this.gameState.baseHp--;if(this.gameState.baseHp<=0)this.gameOver();e.sprite.destroy();e.text.destroy();this.gameState.enemies.splice(i,1);continue;}
-            const tx=tp.x*40,ty=tp.y*40+20,dx=tx-e.sprite.x,dy=ty-e.sprite.y,d=Math.sqrt(dx*dx+dy*dy);
-            if(d<5)e.pathIndex++;else{e.sprite.x+=dx/d*currentSpeed*delta/1000;e.sprite.y+=dy/d*currentSpeed*delta/1000;}
-            e.text.x=e.sprite.x-8;e.text.y=e.sprite.y-5;
-        }
-    }
-    updateTowers(delta){
-        for(const t of this.gameState.towers){
-            if(!t)continue;
-            t.attackCooldown-=delta;
-            if(t.attackCooldown<=0){
-                let target=null,minD=t.range;
-                for(const e of this.gameState.enemies){const d=Phaser.Math.Distance.Between(t.sprite.x,t.sprite.y,e.sprite.x,e.sprite.y);if(d<minD){minD=d;target=e;}}
-                if(target){
-                    const g=this.add.graphics();g.lineStyle(2,t.rangeG.fillColor,1);g.lineBetween(t.sprite.x,t.sprite.y,target.sprite.x,target.sprite.y);this.time.delayedCall(100,()=>g.destroy());
-                    let dmg=t.atk;if(t.gem&&t.gem.name==='冰霜')target.slowTimer=2000;
-                    target.hp-=dmg;this.showDamage(target.sprite.x,target.sprite.y-20,Math.floor(dmg));if(target.hp<=0)this.killEnemy(target,true);t.attackCooldown=1000;
-                }
-            }
-        }
-    }
-    killEnemy(e,r){
-        if(e.isElite&&e.affix&&e.affix.name==='火'){for(const other of this.gameState.enemies){if(other===e)continue;const d=Phaser.Math.Distance.Between(e.sprite.x,e.sprite.y,other.sprite.x,other.sprite.y);if(d<e.affix.range){other.hp-=e.affix.dmg;this.showDamage(other.sprite.x,other.sprite.y-20,e.affix.dmg);if(other.hp<=0&&!other.dead){other.dead=true;this.killEnemy(other,true);}}}}
-        if(r){this.gameState.gold+=e.reward;this.deploymentPoints+=2;this.gameState.exp+=10;
-            if(Math.random()<0.3){const items=['⚔️武','🛡️防','💎寶'];const item=items[Math.floor(Math.random()*items.length)];this.gameState.inventory.push(item);this.showMessage('+'+item,e.sprite.x,e.sprite.y-50,'#00ffff');}
-            this.showMessage('+'+e.reward,e.sprite.x,e.sprite.y-30,'#fd0');}
-        e.sprite.destroy();e.text.destroy();const idx=this.gameState.enemies.indexOf(e);if(idx>-1)this.gameState.enemies.splice(idx,1);
-    }
-    updateUI(){this.goldText.setText(`金:${this.gameState.gold}`);this.costText.setText(`點:${this.deploymentPoints}`);this.waveText.setText(`波:${this.waveConfig.current}`);this.baseHpText.setText(`基:${this.gameState.baseHp}/10`);this.waveInfoText.setText(`敵:${this.waveConfig.enemiesSpawned}/${this.waveConfig.enemiesPerWave}`);}
-    showDamage(x,y,t){const dmg=this.add.text(x,y,`-${t}`,{fontSize:'16px',color:'#f00',fontStyle:'bold'});this.tweens.add({targets:dmg,y:y-30,alpha:0,duration:500,onComplete:()=>dmg.destroy()});}
-    showMessage(text,x,y,color='#fff'){const msg=this.add.text(x,y,text,{fontSize:'16px',color:color,fontStyle:'bold',stroke:'#000',strokeThickness:3});this.tweens.add({targets:msg,y:y-30,alpha:0,duration:1000,onComplete:()=>msg.destroy()});}
-    gameOver(){this.gameState.isGameOver=true;this.add.rectangle(400,300,400,280,0x000,0.9);this.add.text(400,180,'💀遊戲結束',{fontSize:'36px',color:'#f00',fontStyle:'bold'}).setOrigin(0.5);this.add.text(400,240,'🌊波次:'+this.waveConfig.current,{fontSize:'18px',color:'#fff'}).setOrigin(0.5);this.add.text(400,280,'💰金幣:'+this.gameState.gold,{fontSize:'18px',color:'#fd0'}).setOrigin(0.5);this.add.text(400,320,'🎒掉落:'+(this.gameState.inventory.length>0?this.gameState.inventory.join(' '):'無'),{fontSize:'14px',color:'#00ffff'}).setOrigin(0.5);this.add.text(400,400,'點擊重新開始',{fontSize:'20px',color:'#4ecdc4',backgroundColor:'#333',padding:{x:20,y:10}}).setOrigin(0.5).setInteractive().on('pointerdown',()=>this.scene.restart());}
 }
-const config={type:Phaser.AUTO,width:800,height:600,parent:'game-container',backgroundColor:'#1a1a2e',scene:MainScene};
-const game=new Phaser.Game(config);
