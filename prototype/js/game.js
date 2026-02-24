@@ -181,6 +181,28 @@ class MainScene extends Phaser.Scene {
         }
     }
 
+    createSkillBar(){
+        const barY=560,barX=600;
+        this.skillQ=this.add.rectangle(barX,barY,36,36,0x4ecdc4).setStrokeStyle(2,'#0f0');
+        this.skillE=this.add.rectangle(barX+50,barY,36,36,0xffe66d).setStrokeStyle(2,'#0f0');
+        this.skillR=this.add.rectangle(barX+100,barY,36,36,0xff6b35).setStrokeStyle(2,'#0f0');
+        this.add.text(barX-12,barY-8,'Q',{fontSize:'20px',fontStyle:'bold',color:'#000'});this.add.text(barX+38,barY-8,'E',{fontSize:'20px',fontStyle:'bold',color:'#000'});this.add.text(barX+88,barY-8,'R',{fontSize:'20px',fontStyle:'bold',color:'#000'});
+        this.skillQCD=this.add.rectangle(barX,barY,36,36,0x000,0.7).setVisible(false);this.skillRCD=this.add.rectangle(barX+100,barY,36,36,0x000,0.7).setVisible(false);
+    }
+    createGemUI(){
+        this.add.text(300,530,'【靈樞】SPACE:',{fontSize:'12px',color:'#4ecdc4'});
+        this.updateGemDisplay();
+    }
+    updateGemDisplay(){
+        const skills=this.equipment.getActiveSkills();let x=320;
+        for(let i=0;i<skills.length;i++){
+            const s=skills[i],isActive=i===this.heroGemSkillIndex,c=isActive?'#0f0':'#888';
+            this.add.rectangle(x,560,30,30,0x333,0.8).setStrokeStyle(2,c);
+            this.add.text(x-8,552,s.icon,{fontSize:'16px'});
+            x+=35;
+        }
+    }
+
 toggleInventory(){
         if(this.inventoryUI){this.inventoryUI.destroy();this.inventoryUI=null;return;}
         this.inventoryUI=this.add.container(0,0).setDepth(50);
