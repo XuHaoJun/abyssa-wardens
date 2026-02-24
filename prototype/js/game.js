@@ -252,3 +252,5 @@ toggleInventory(){
         for(let i=0;i<lines.length;i++)this.tooltip.add(this.add.text(-w/2+4,-h/2+6+i*14,lines[i],{fontSize:'10px',color:'#fff'}));
     }
 }
+const config={type:Phaser.AUTO,width:800,height:600,parent:"game-container",backgroundColor:"#1a1a2e",scene:MainScene};
+const game=new Phaser.Game(config);
