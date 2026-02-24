@@ -329,6 +329,7 @@ class MainScene extends Phaser.Scene {
     }
     handleClick(pointer){
         if(this.gameState.isGameOver||this.gameState.isPaused)return;
+        if(this.inventoryUI)return; // 背包開啟時不移動
         // 直接移動到點擊位置
         this.hero.targetX=pointer.x;
         this.hero.targetY=pointer.y;
