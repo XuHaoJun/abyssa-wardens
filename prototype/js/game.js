@@ -142,10 +142,18 @@ class MainScene extends Phaser.Scene {
         if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.Q]))this.useDash(time);
         if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.E]))this.useGemSkill(time);
         if(Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.R]))this.useUltimate(time);
-        if(this.hero.targetPath.length>0){
-            const t=this.hero.targetPath[this.hero.pathIndex],tx=t.x*40+20,ty=t.y*40+20,dx=tx-this.heroSprite.x,dy=ty-this.heroSprite.y,d=Math.sqrt(dx*dx+dy*dy);
-            if(d<5){this.hero.pathIndex++;if(this.hero.pathIndex>=this.hero.targetPath.length){this.hero.targetPath=[];this.targetMarker.setVisible(false);this.attackRange.setVisible(false);}}
-            else{const sp=this.hero.isDashing?this.hero.speed*2.5:this.hero.speed;this.heroSprite.x+=dx/d*sp*delta/1000;this.heroSprite.y+=dy/d*sp*delta/1000;}
+        // 直接移動
+        if(this.hero.targetX!==undefined){
+            const dx=this.hero.targetX-this.heroSprite.x,dy=this.hero.targetY-this.heroSprite.y,d=Math.sqrt(dx*dx+dy*dy);
+            if(d>5){const sp=this.hero.speed*delta/1000;this.heroSprite.x+=dx/d*Math.min(sp,d);this.heroSprite.y+=dy/d*Math.min(sp,d);}
+            else{this.hero.targetX=undefined;this.hero.targetY=undefined;this.targetMarker.setVisible(false);this.attackRange.setVisible(false);}
+        }
+        // 自動普攻
+        this.hero.autoAttackTimer=(this.hero.autoAttackTimer||0)+delta;
+        if(this.hero.autoAttackTimer>=500){
+            let target=null,minDist=80;
+            for(const e of this.gameState.enemies){const d=Phaser.Math.Distance.Between(this.heroSprite.x,this.heroSprite.y,e.sprite.x,e.sprite.y);if(d<minDist){minDist=d;target=e;}}
+            if(target){this.hero.autoAttackTimer=0;const g=this.add.graphics();g.lineStyle(2,0xff6b35,0.8);g.lineBetween(this.heroSprite.x,this.heroSprite.y,target.sprite.x,target.sprite.y);this.time.delayedCall(80,()=>g.destroy());target.hp-=30;this.showDamage(target.sprite.x,target.sprite.y-15,30,'#ffa500');if(target.hp<=0)this.killEnemy(target,true);}
         }
         this.heroSprite.x=Phaser.Math.Clamp(this.heroSprite.x,20,780);this.heroSprite.y=Phaser.Math.Clamp(this.heroSprite.y,20,550);
         this.heroText.x=this.heroSprite.x-15;this.heroText.y=this.heroSprite.y-5;
@@ -177,8 +185,11 @@ class MainScene extends Phaser.Scene {
         if(this.gameState.isGameOver)return;
         if(pointer.rightButtonDown()){for(let i=0;i<this.gameState.towers.length;i++){const t=this.gameState.towers[i];if(t&&t.sprite.getBounds().contains(pointer.x,pointer.y)){if(t.gem)t.gem.isDeployed=false;this.deploymentPoints+=Math.floor(t.cost*0.5);t.sprite.destroy();t.text.destroy();t.hpBar.destroy();t.rangeG.destroy();this.gameState.towers[i]=null;return;}}return;}
         for(const pt of this.deployPointGraphics){if(pt.getBounds().contains(pointer.x,pointer.y)){this.deployTower(pt.pointData,pt.pointIndex);return;}}
-        const path=this.astar.findPath({x:Math.floor(this.heroSprite.x/40),y:Math.floor(this.heroSprite.y/40)},{x:Math.floor(pointer.x/40),y:Math.floor(pointer.y/40)});
-        if(path.length>0){this.hero.targetPath=path;this.hero.pathIndex=0;this.targetMarker.setPosition(pointer.x,pointer.y).setVisible(true);this.attackRange.setPosition(pointer.x,pointer.y).setVisible(true);}
+        // 直接移動
+        this.hero.targetX=pointer.x;
+        this.hero.targetY=pointer.y;
+        this.targetMarker.setPosition(pointer.x,pointer.y).setVisible(true);
+        this.attackRange.setPosition(pointer.x,pointer.y).setVisible(true);
     }
     deployTower(pd,idx){
         const gem=GEM_TYPES[this.selectedOpType];
