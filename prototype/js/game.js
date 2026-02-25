@@ -182,6 +182,14 @@ class MainScene extends Phaser.Scene {
                 if(gem){
                     this.inventoryUI.add(this.add.text(sx-10, sy-10, gem.icon, {fontSize:'18px'}));
                 }
+                // Hover 顯示物品資訊
+                slotBg.setInteractive();
+                slotBg.on('pointerover', () => {
+                    if(gem) this.showItemTooltip(gem, sx, sy - socketW - 10);
+                });
+                slotBg.on('pointerout', () => {
+                    if(this.tooltip) { this.tooltip.destroy(); this.tooltip = null; }
+                });
                 this.inventoryUI.add(slotBg);
             }
             
@@ -199,6 +207,14 @@ class MainScene extends Phaser.Scene {
             const item = this.gameState.inventory[i];
             const bg = this.add.rectangle(bx,by,38,38, item?0x2a2a2a:0x151515,0.9).setStrokeStyle(1, item?0x00ffff:0x333333);
             if(item) this.inventoryUI.add(this.add.text(bx-8,by-8,item,{fontSize:'14px'}));
+            // Hover
+            bg.setInteractive();
+            bg.on('pointerover', () => {
+                if(item) this.showItemTooltip({name:item, desc:'擊殺掉落'}, bx, by - 30);
+            });
+            bg.on('pointerout', () => {
+                if(this.tooltip) { this.tooltip.destroy(); this.tooltip = null; }
+            });
             this.inventoryUI.add(bg);
         }
         
@@ -215,6 +231,30 @@ class MainScene extends Phaser.Scene {
         
         // 說明
         this.inventoryUI.add(this.add.text(400,515,'💡 點擊部署點放置Operator | 數字鍵1-5選擇 | SPACE切換技能',{fontSize:'10px',color:'#666'}).setOrigin(0.5));
+    }
+    showItemTooltip(item, x, y){
+        if(this.tooltip) this.tooltip.destroy();
+        this.tooltip = this.add.container(x, y).setDepth(100);
+        const lines = [item.name];
+        const typeColor = item.type === 'skill' ? '#ff6b35' : item.type === 'operator' ? '#4ecdc4' : '#8888ff';
+        lines.push('類型: ' + (item.type === 'skill' ? '🔴 技能石' : item.type === 'operator' ? '🟡 陣地石' : '🔵 輔助石'));
+        if(item.damage) lines.push('⚔️ 傷害: ' + item.damage);
+        if(item.range) lines.push('📏 範圍: ' + item.range);
+        if(item.cooldown) lines.push('⏱️ 冷卻: ' + (item.cooldown/1000) + '秒');
+        if(item.hp) lines.push('❤️ 生命: ' + item.hp);
+        if(item.atk) lines.push('⚔️ 攻擊: ' + item.atk);
+        if(item.block) lines.push('🚫 阻擋: ' + item.block);
+        if(item.cost) lines.push('💰 花費: ' + item.cost);
+        if(item.multi) lines.push('🎯 多重: x' + item.multi);
+        if(item.dmgBonus) lines.push('💪 增傷: x' + item.dmgBonus);
+        if(item.speedBonus) lines.push('⚡ 加速: x' + item.speedBonus);
+        
+        const h = lines.length * 16 + 10;
+        const w = 140;
+        this.tooltip.add(this.add.rectangle(0, 0, w, h, 0x000000, 0.95).setStrokeStyle(1, 0xffd700));
+        for(let i = 0; i < lines.length; i++){
+            this.tooltip.add(this.add.text(-w/2 + 5, -h/2 + 8 + i * 15, lines[i], {fontSize:'11px', color:'#fff'}));
+        }
     }
     createSkillBar(){
         const barY=560,barX=600;
