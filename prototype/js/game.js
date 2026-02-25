@@ -10,51 +10,6 @@ const ELITE_AFFIXES = {
 };
 
 // GDD 裝備系統
-const GEM_TYPES = {
-    SKILL_FIREBALL:{name:'火球',icon:'🔥',type:'skill',damage:50,cooldown:1000,range:150},
-    SKILL_ICE:{name:'冰霜',icon:'❄️',type:'skill',damage:30,cooldown:800,range:120,slow:0.3},
-    SKILL_LIGHTNING:{name:'閃電',icon:'⚡',type:'skill',damage:40,cooldown:600,range:130},
-    SKILL_POISON:{name:'劇毒',icon:'☠️',type:'skill',damage:25,cooldown:700,range:100},
-    OP_TNK:{name:'重裝',icon:'🛡️',type:'operator',hp:500,atk:15,range:60,block:3,cost:5,color:0x4a90d9},
-    OP_MEL:{name:'近衛',icon:'⚔️',type:'operator',hp:300,atk:25,range:70,block:2,cost:4,color:0xd94a4a},
-    OP_RNG:{name:'狙擊',icon:'🏹',type:'operator',hp:150,atk:35,range:150,block:0,cost:4,color:0x4ad94a},
-    OP_MAG:{name:'術士',icon:'🔮',type:'operator',hp:120,atk:40,range:120,block:0,cost:5,color:0x9b4ad9},
-    OP_HEAL:{name:'醫療',icon:'💚',type:'operator',hp:100,atk:5,range:80,block:0,cost:3,color:0x4ad94a,heal:20},
-    SUPPORT_MULTI:{name:'多重',icon:'🎯',type:'support',multi:2},
-    SUPPORT_RANGE:{name:'擴展',icon:'📐',type:'support',rangeBonus:1.3},
-    SUPPORT_SPEED:{name:'加速',icon:'⚡',type:'support',speedBonus:1.2},
-    SUPPORT_DAMAGE:{name:'增傷',icon:'💪',type:'support',dmgBonus:1.5}
-};
-
-const EQUIP_SLOTS = {
-    '雙手武器':{sockets:6,links:6,icon:'⚔️'},'胸甲':{sockets:6,links:6,icon:'🛡️'},
-    '頭盔':{sockets:4,links:4,icon:'⛑️'},'手套':{sockets:4,links:4,icon:'🧤'},
-    '鞋子':{sockets:4,links:4,icon:'👢'},'主手':{sockets:3,links:3,icon:'🗡️'},
-    '副手':{sockets:3,links:3,icon:'🛡️'},'項鍊':{sockets:0,links:0,icon:'📿'},'戒指':{sockets:0,links:0,icon:'💍'}
-};
-
-class EquipmentSystem {
-    constructor(){
-        this.slots = {
-            '雙手武器': Array(6).fill(null),'胸甲': Array(6).fill(null),
-            '頭盔': Array(4).fill(null),'手套': Array(4).fill(null),
-            '鞋子': Array(4).fill(null),'主手': Array(3).fill(null),
-            '副手': Array(3).fill(null),'項鍊': [],'戒指': []
-        };
-        this.slots['雙手武器'][0] = GEM_TYPES.SKILL_FIREBALL;
-        this.slots['胸甲'][0] = GEM_TYPES.OP_RNG;
-        this.slots['頭盔'][0] = GEM_TYPES.SKILL_LIGHTNING;
-        this.slots['手套'][0] = GEM_TYPES.SUPPORT_DAMAGE;
-        this.slots['鞋子'][0] = GEM_TYPES.SUPPORT_SPEED;
-        this.slots['主手'][0] = GEM_TYPES.OP_TNK;
-        this.deployed = {};
-    }
-    getHeroSkills(){const sk=[];for(const sn in this.slots){for(const g of this.slots[sn]){if(g&&g.type==='skill'&&!this.isDeployed(g))sk.push({...g,slot:sn});}}return sk;}
-    getDeployableOperators(){const op=[];for(const sn in this.slots){for(const g of this.slots[sn]){if(g&&g.type==='operator'&&!this.isDeployed(g))op.push({...g,slot:sn});}}return op;}
-    isDeployed(gem){for(const k in this.deployed){if(this.deployed[k]===gem)return true;}return false;}
-    deploy(sn,gem,idx){if(gem&&gem.type==='operator'){this.deployed[idx]=gem;return true;}return false;}
-    retreat(idx){if(this.deployed[idx]){delete this.deployed[idx];return true;}return false;}
-}
 
 class AStar {
     constructor(){this.obstacles=[];}
