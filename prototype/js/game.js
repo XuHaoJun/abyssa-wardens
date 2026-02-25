@@ -91,15 +91,15 @@ class MainScene extends Phaser.Scene {
         this.traps=[{x:12,y:7,active:true,damage:30,cooldown:3000,lastTrigger:0}];
         this.hero={hp:100,maxHp:100,x:80,y:300,speed:150,skills:{basic:{dmg:30,cd:500,range:80},dash:{dmg:20,cd:3000,dist:120,ready:true,lastUsed:0},ultimate:{dmg:200,cd:15000,range:150,ready:true,charge:0,max:100,lastUsed:0}},isDashing:false,targetPath:[],pathIndex:0};
         this.deploymentPoints=5;
-        this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false,inventory:[]};
+        this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false,isPaused:false,inventory:[]};
         this.waveConfig={current:1,enemiesPerWave:5,enemiesSpawned:0,isBreak:false,breakTime:5000};
-        this.keys={};[Phaser.Input.Keyboard.KeyCodes.Q,Phaser.Input.Keyboard.KeyCodes.E,Phaser.Input.Keyboard.KeyCodes.R,Phaser.Input.Keyboard.KeyCodes.ONE,Phaser.Input.Keyboard.KeyCodes.TWO,Phaser.Input.Keyboard.KeyCodes.THREE,Phaser.Input.Keyboard.KeyCodes.FOUR,Phaser.Input.Keyboard.KeyCodes.FIVE,Phaser.Input.Keyboard.KeyCodes.SPACE,Phaser.Input.Keyboard.KeyCodes.B].forEach(k=>{this.keys[k]=this.input.keyboard.addKey(k);});
+        this.keys={};[Phaser.Input.Keyboard.KeyCodes.Q,Phaser.Input.Keyboard.KeyCodes.E,Phaser.Input.Keyboard.KeyCodes.R,Phaser.Input.Keyboard.KeyCodes.ONE,Phaser.Input.Keyboard.KeyCodes.TWO,Phaser.Input.Keyboard.KeyCodes.THREE,Phaser.Input.Keyboard.KeyCodes.FOUR,Phaser.Input.Keyboard.KeyCodes.FIVE,Phaser.Input.Keyboard.KeyCodes.SPACE,Phaser.Input.Keyboard.KeyCodes.B,Phaser.Input.Keyboard.KeyCodes.ESC].forEach(k=>{this.keys[k]=this.input.keyboard.addKey(k);});
         this.selectedOpType='OP_TNK';this.heroGemSkillIndex=0;
         this.drawBackground();this.drawPath();this.drawDeployPoints();this.drawObstacles();this.createHero();this.createUI();this.createSkillBar();this.createGemUI();this.createWaveUI();
         this.spawnTimer=this.time.addEvent({delay:2000,callback:this.spawnEnemy,callbackScope:this,loop:true});
         this.input.on('pointerdown',this.handleClick,this);this.input.mouse.disableContextMenu();
     }
-    update(time,delta){if(this.gameState.isGameOver)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();if(this.keys[Phaser.Input.Keyboard.KeyCodes.B]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.B]))this.toggleInventory();}
+    update(time,delta){if(this.gameState.isGameOver||this.gameState.isPaused)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();if(this.keys[Phaser.Input.Keyboard.KeyCodes.B]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.B]))this.toggleInventory();if(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]))this.togglePause();}
     drawBackground(){this.add.grid(400,300,800,600,CONFIG.tileSize,CONFIG.tileSize,0x1a1a2e,0.5,0x2a2a4e,0.3);}
     drawPath(){
         this.pathPoints=[{x:0,y:7},{x:4,y:7},{x:4,y:3},{x:10,y:3},{x:10,y:11},{x:15,y:11},{x:15,y:7},{x:20,y:7}];
@@ -132,20 +132,89 @@ class MainScene extends Phaser.Scene {
         this.add.text(20,550,'左:移動/部署|右:撤退|1-5:選|SPACE:技能',{fontSize:'11px',color:'#888'});
     }
     createWaveUI(){this.waveInfoText=this.add.text(650,50,'敵:0/5',{fontSize:'14px',color:'#fff',backgroundColor:'#0008',padding:{x:5,y:3}});this.nextWaveText=this.add.text(400,300,'',{fontSize:'28px',color:'#4ecdc4',fontStyle:'bold',stroke:'#000',strokeThickness:4}).setOrigin(0.5).setVisible(false);}
+    togglePause(){
+        this.gameState.isPaused = !this.gameState.isPaused;
+        if(this.gameState.isPaused){
+            this.pauseUI = this.add.container(0,0).setDepth(100);
+            this.pauseUI.add(this.add.rectangle(400,300,400,200,0x000,0.9));
+            this.pauseUI.add(this.add.text(400,250,'⏸ 遊戲暫停',{fontSize:'32px',color:'#fff',fontStyle:'bold'}).setOrigin(0.5));
+            this.pauseUI.add(this.add.text(400,310,'按 ESC 繼續',{fontSize:'18px',color:'#4ecdc4'}).setOrigin(0.5));
+        }else if(this.pauseUI){
+            this.pauseUI.destroy();this.pauseUI=null;
+        }
+    }
+    
     toggleInventory(){
         if(this.inventoryUI){this.inventoryUI.destroy();this.inventoryUI=null;return;}
         this.inventoryUI=this.add.container(0,0).setDepth(50);
-        this.inventoryUI.add(this.add.rectangle(400,300,700,450,0x111111,0.95));
-        this.inventoryUI.add(this.add.text(400,40,'背包 (按B關閉)',{fontSize:'20px',color:'#ffd700'}).setOrigin(0.5));
-        for(let i=0;i<30;i++){
-            const row=Math.floor(i/6),col=i%6;
-            const bx=250+col*70,by=80+row*55;
-            const item=this.gameState.inventory[i];
-            const bg=this.add.rectangle(bx,by,60,50,item?0x2a2a2a:0x1a1a1a,0.8).setStrokeStyle(1,item?0x00ffff:0x333333);
-            if(item)this.inventoryUI.add(this.add.text(bx-15,by-15,item,{fontSize:'16px'}));
+        this.inventoryUI.add(this.add.rectangle(400,300,760,540,0x111111,0.98));
+        this.inventoryUI.add(this.add.text(400,25,'🎒 裝備與背包 (按B關閉)',{fontSize:'22px',color:'#ffd700',fontStyle:'bold'}).setOrigin(0.5));
+        
+        // 8 裝備欄位 (GDD 2)
+        const slotOrder = ['雙手武器','胸甲','頭盔','手套','鞋子','主手','副手','項鍊','戒指'];
+        const slotPos = {
+            '雙手武器':{x:180,y:100},'胸甲':{x:180,y:170},'頭盔':{x:180,y:240},
+            '手套':{x:180,y:310},'鞋子':{x:180,y:380},'主手':{x:100,y:450},
+            '副手':{x:260,y:450},'項鍊':{x:180,y:450}
+        };
+        
+        for(const slotName of slotOrder){
+            const slotDef = EQUIP_SLOTS[slotName];
+            const pos = slotPos[slotName] || {x:180,y:450};
+            const sockets = this.equipment.slots[slotName];
+            
+            // 欄位名
+            this.inventoryUI.add(this.add.text(pos.x, pos.y-35, slotDef.icon+' '+slotName, {fontSize:'12px',color:'#888'}).setOrigin(0.5));
+            
+            // 插槽網格
+            const socketW = 28, gap = 2;
+            const totalW = sockets.length * (socketW + gap);
+            const startX = pos.x - totalW/2 + socketW/2;
+            
+            for(let i=0; i<sockets.length; i++){
+                const gem = sockets[i];
+                const sx = startX + i * (socketW + gap);
+                const sy = pos.y;
+                const bgColor = gem ? (gem.type==='skill'?0x3a2010:gem.type==='operator'?0x102a20:0x10103a) : 0x1a1a1a;
+                const borderColor = gem ? (gem.type==='skill'?0xff6b35:gem.type==='operator'?0x4ecdc4:0x8888ff) : 0x444444;
+                
+                const slotBg = this.add.rectangle(sx, sy, socketW, socketW, bgColor, 0.9).setStrokeStyle(2, borderColor);
+                if(gem){
+                    this.inventoryUI.add(this.add.text(sx-10, sy-10, gem.icon, {fontSize:'18px'}));
+                }
+                this.inventoryUI.add(slotBg);
+            }
+            
+            // 連線數
+            if(slotDef.links > 0){
+                this.inventoryUI.add(this.add.text(pos.x, pos.y+25, '🔗'+slotDef.links, {fontSize:'10px',color:'#4ecdc4'}).setOrigin(0.5));
+            }
+        }
+        
+        // 背包
+        this.inventoryUI.add(this.add.text(560,70,'🎒 背包 (30格)',{fontSize:'14px',color:'#c0c0c0'}).setOrigin(0.5));
+        for(let i=0; i<30; i++){
+            const row = Math.floor(i/6), col = i%6;
+            const bx = 430 + col*42, by = 100 + row*42;
+            const item = this.gameState.inventory[i];
+            const bg = this.add.rectangle(bx,by,38,38, item?0x2a2a2a:0x151515,0.9).setStrokeStyle(1, item?0x00ffff:0x333333);
+            if(item) this.inventoryUI.add(this.add.text(bx-8,by-8,item,{fontSize:'14px'}));
             this.inventoryUI.add(bg);
         }
-        this.inventoryUI.add(this.add.text(400,400,'金幣: '+this.gameState.gold,{fontSize:'14px',color:'#ffd700'}).setOrigin(0.5));
+        
+        // 可部署 Operators
+        this.inventoryUI.add(this.add.text(560,350,'🛡️ 可部署單位',{fontSize:'14px',color:'#c0c0c0'}).setOrigin(0.5));
+        const ops = this.equipment.getDeployableOperators();
+        let oy = 380;
+        for(const op of ops){
+            this.inventoryUI.add(this.add.rectangle(560,oy,160,26,0x2a4a2a,0.8).setStrokeStyle(1,0x00ff00));
+            this.inventoryUI.add(this.add.text(560-70,oy-5,op.icon+' '+op.name,{fontSize:'12px',color:'#4ecdc4'}));
+            this.inventoryUI.add(this.add.text(560+70,oy-5,'💰'+op.cost,{fontSize:'11px',color:'#fd0'}).setOrigin(0.5));
+            oy += 32;
+        }
+        
+        // 說明
+        this.inventoryUI.add(this.add.text(400,515,'💡 點擊部署點放置Operator | 數字鍵1-5選擇 | SPACE切換技能',{fontSize:'10px',color:'#666'}).setOrigin(0.5));
     }
     createSkillBar(){
         const barY=560,barX=600;
@@ -237,8 +306,8 @@ class MainScene extends Phaser.Scene {
         this.cameras.main.shake(200,0.01);this.time.delayedCall(500,()=>g.destroy());
     }
     handleClick(pointer){
-        if(this.gameState.isGameOver||this.inventoryUI)return;
-        if(pointer.rightButtonDown()){for(let i=0;i<this.gameState.towers.length;i++){const t=this.gameState.towers[i];if(t&&t.sprite.getBounds().contains(pointer.x,pointer.y)){if(t.gem)t.gem.isDeployed=false;this.deploymentPoints+=Math.floor(t.cost*0.5);t.sprite.destroy();t.text.destroy();t.hpBar.destroy();t.rangeG.destroy();this.gameState.towers[i]=null;return;}}return;}
+        if(this.gameState.isGameOver||this.gameState.isPaused||this.inventoryUI)return;
+        if(pointer.rightButtonDown()){for(let i=0;i<this.gameState.towers.length;i++){const t=this.gameState.towers[i];if(t&&t.sprite.getBounds().contains(pointer.x,pointer.y)){this.equipment.retreat(i);this.deploymentPoints+=Math.floor(t.cost*0.5);t.sprite.destroy();t.text.destroy();t.hpBar.destroy();t.rangeG.destroy();this.gameState.towers[i]=null;return;}}return;}
         for(const pt of this.deployPointGraphics){if(pt.getBounds().contains(pointer.x,pointer.y)){this.deployTower(pt.pointData,pt.pointIndex);return;}}
         // 直接移動
         this.hero.targetX=pointer.x;
@@ -247,15 +316,29 @@ class MainScene extends Phaser.Scene {
         this.attackRange.setPosition(pointer.x,pointer.y).setVisible(true);
     }
     deployTower(pd,idx){
-        const gem=GEM_TYPES[this.selectedOpType];
-        if(this.deploymentPoints<gem.cost||this.gameState.towers[idx])return;
-        const isHigh=pd.type==='highground';
-        if(isHigh&&(this.selectedOpType==='OP_TNK'||this.selectedOpType==='OP_MEL'))return;
-        if(!isHigh&&(this.selectedOpType==='OP_RNG'||this.selectedOpType==='OP_MAG'))return;
-        this.deploymentPoints-=gem.cost;gem.isDeployed=true;
-        const tower={gem:gem,sprite:this.add.rectangle(pd.x,pd.y,35,35,gem.color).setInteractive(),text:this.add.text(pd.x-10,pd.y-8,gem.icon,{fontSize:'16px'}),hp:gem.hp*1.3,maxHp:gem.hp*1.3,atk:gem.atk*1.3,range:gem.range,block:gem.block,cost:gem.cost,attackCooldown:0,pointIndex:idx,hpBar:this.add.rectangle(pd.x,pd.y-30,30,4,0x0f0),rangeG:this.add.circle(pd.x,pd.y,gem.range,gem.color,0.1).setVisible(false)};
-        tower.sprite.on('pointerover',()=>tower.rangeG.setVisible(true));tower.sprite.on('pointerout',()=>tower.rangeG.setVisible(false));
-        this.gameState.towers[idx]=tower;
+        const ops = this.equipment.getDeployableOperators();
+        const selectedOp = ops[this.selectedOpType < ops.length ? this.selectedOpType : 0];
+        if(!selectedOp) return;
+        if(this.deploymentPoints < selectedOp.cost || this.gameState.towers[idx]) return;
+        const isHigh = pd.type === 'highground';
+        if(isHigh && (selectedOp.name==='重裝' || selectedOp.name==='近衛')) return;
+        if(!isHigh && (selectedOp.name==='狙擊' || selectedOp.name==='術士')) return;
+        
+        this.deploymentPoints -= selectedOp.cost;
+        this.equipment.deploy(selectedOp.slot, selectedOp, idx);
+        
+        const tower = {
+            gem: selectedOp,
+            sprite: this.add.rectangle(pd.x,pd.y,35,35,selectedOp.color).setInteractive(),
+            text: this.add.text(pd.x-10,pd.y-8,selectedOp.icon,{fontSize:'16px'}),
+            hp: selectedOp.hp*1.3, maxHp: selectedOp.hp*1.3, atk: selectedOp.atk*1.3, range: selectedOp.range, block: selectedOp.block, cost: selectedOp.cost,
+            attackCooldown: 0, pointIndex: idx,
+            hpBar: this.add.rectangle(pd.x,pd.y-30,30,4,0x0f0),
+            rangeG: this.add.circle(pd.x,pd.y,selectedOp.range,selectedOp.color,0.1).setVisible(false)
+        };
+        tower.sprite.on('pointerover',()=>tower.rangeG.setVisible(true));
+        tower.sprite.on('pointerout',()=>tower.rangeG.setVisible(false));
+        this.gameState.towers[idx] = tower;
     }
     updateBlockers(){for(const e of this.gameState.enemies)e.blocked=false;for(const t of this.gameState.towers){if(!t)continue;const blocked=this.gameState.enemies.filter(e=>!e.blocked&&Phaser.Math.Distance.Between(t.sprite.x,t.sprite.y,e.sprite.x,e.sprite.y)<t.range+20);for(let i=0;i<Math.min(blocked.length,t.block);i++)blocked[i].blocked=true;}}
     updateEnemies(delta,time){
