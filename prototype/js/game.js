@@ -20,8 +20,8 @@ const GEM_TYPES = {
 };
 
 class EquipmentSystem {
-    constructor(){this.gems={weapon:[GEM_TYPES.SKILL_FIREBALL],armor:[GEM_TYPES.OP_RNG],helmet:[GEM_TYPES.SKILL_LIGHTNING]};this.links=[{socketIndex:0,gem:this.gems.weapon[0]},{socketIndex:1,gem:this.gems.armor[0]},{socketIndex:2,gem:this.gems.helmet[0]}];}
-    getHeroSkills(){return this.links.filter(l=>l.gem.type==='skill').map(l=>({...l.gem,linkIndex:l.socketIndex}));}
+    constructor(){this.gems={武器:[GEM_TYPES.SKILL_FIREBALL],防具:[GEM_TYPES.OP_RNG],頭盔:[GEM_TYPES.SKILL_LIGHTNING]};this.links=[{socketIndex:0,gem:this.gems.武器[0],slot:'武器'},{socketIndex:1,gem:this.gems.防具[0],slot:'防具'},{socketIndex:2,gem:this.gems.頭盔[0],slot:'頭盔'}];}
+    getHeroSkills(){return this.links.filter(l=>l.gem.type==='skill').map(l=>({...l.gem,slot:l.slot}));}
 }
 
 class AStar {
@@ -61,13 +61,13 @@ class MainScene extends Phaser.Scene {
         this.deploymentPoints=5;
         this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false,inventory:[]};
         this.waveConfig={current:1,enemiesPerWave:5,enemiesSpawned:0,isBreak:false,breakTime:5000};
-        this.keys={};[Phaser.Input.Keyboard.KeyCodes.Q,Phaser.Input.Keyboard.KeyCodes.E,Phaser.Input.Keyboard.KeyCodes.R,Phaser.Input.Keyboard.KeyCodes.ONE,Phaser.Input.Keyboard.KeyCodes.TWO,Phaser.Input.Keyboard.KeyCodes.THREE,Phaser.Input.Keyboard.KeyCodes.FOUR,Phaser.Input.Keyboard.KeyCodes.FIVE,Phaser.Input.Keyboard.KeyCodes.SPACE,Phaser.Input.Keyboard.KeyCodes.B].forEach(k=>{this.keys[k]=this.input.keyboard.addKey(k);});
+        this.keys={};[Phaser.Input.Keyboard.KeyCodes.Q,Phaser.Input.Keyboard.KeyCodes.E,Phaser.Input.Keyboard.KeyCodes.R,Phaser.Input.Keyboard.KeyCodes.ONE,Phaser.Input.Keyboard.KeyCodes.TWO,Phaser.Input.Keyboard.KeyCodes.THREE,Phaser.Input.Keyboard.KeyCodes.FOUR,Phaser.Input.Keyboard.KeyCodes.FIVE,Phaser.Input.Keyboard.KeyCodes.SPACE,Phaser.Input.Keyboard.KeyCodes.B,Phaser.Input.Keyboard.KeyCodes.ESC].forEach(k=>{this.keys[k]=this.input.keyboard.addKey(k);});
         this.selectedOpType='OP_TNK';this.heroGemSkillIndex=0;
         this.drawBackground();this.drawPath();this.drawDeployPoints();this.drawObstacles();this.createHero();this.createUI();this.createSkillBar();this.createGemUI();this.createWaveUI();
         this.spawnTimer=this.time.addEvent({delay:2000,callback:this.spawnEnemy,callbackScope:this,loop:true});
         this.input.on('pointerdown',this.handleClick,this);this.input.mouse.disableContextMenu();
     }
-    update(time,delta){if(this.gameState.isGameOver)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();if(this.keys[Phaser.Input.Keyboard.KeyCodes.B]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.B]))this.toggleInventory();}
+    update(time,delta){if(this.gameState.isGameOver||this.gameState.isPaused)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();if(this.keys[Phaser.Input.Keyboard.KeyCodes.B]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.B]))this.toggleInventory();if(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]))this.togglePause();}
     drawBackground(){this.add.grid(400,300,800,600,CONFIG.tileSize,CONFIG.tileSize,0x1a1a2e,0.5,0x2a2a4e,0.3);}
     drawPath(){
         this.pathPoints=[{x:0,y:7},{x:4,y:7},{x:4,y:3},{x:10,y:3},{x:10,y:11},{x:15,y:11},{x:15,y:7},{x:20,y:7}];
@@ -100,20 +100,37 @@ class MainScene extends Phaser.Scene {
         this.add.text(20,550,'左:移動/部署|右:撤退|1-5:選|SPACE:技能',{fontSize:'11px',color:'#888'});
     }
     createWaveUI(){this.waveInfoText=this.add.text(650,50,'敵:0/5',{fontSize:'14px',color:'#fff',backgroundColor:'#0008',padding:{x:5,y:3}});this.nextWaveText=this.add.text(400,300,'',{fontSize:'28px',color:'#4ecdc4',fontStyle:'bold',stroke:'#000',strokeThickness:4}).setOrigin(0.5).setVisible(false);}
+    togglePause(){this.gameState.isPaused=!this.gameState.isPaused;if(this.pauseUI){this.pauseUI.destroy();this.pauseUI=null;}if(this.gameState.isPaused){this.pauseUI=this.add.container(0,0).setDepth(100);this.pauseUI.add(this.add.rectangle(400,300,400,250,0x000,0.9));this.pauseUI.add(this.add.text(400,220,'⏸ 遊戲暫停',{fontSize:'32px',color:'#fff',fontStyle:'bold'}).setOrigin(0.5));this.pauseUI.add(this.add.text(400,280,'按 ESC 繼續',{fontSize:'18px',color:'#4ecdc4'}).setOrigin(0.5));}}
     toggleInventory(){
         if(this.inventoryUI){this.inventoryUI.destroy();this.inventoryUI=null;return;}
         this.inventoryUI=this.add.container(0,0).setDepth(50);
-        this.inventoryUI.add(this.add.rectangle(400,300,700,450,0x111111,0.95));
-        this.inventoryUI.add(this.add.text(400,40,'背包 (按B關閉)',{fontSize:'20px',color:'#ffd700'}).setOrigin(0.5));
-        for(let i=0;i<30;i++){
-            const row=Math.floor(i/6),col=i%6;
-            const bx=250+col*70,by=80+row*55;
-            const item=this.gameState.inventory[i];
-            const bg=this.add.rectangle(bx,by,60,50,item?0x2a2a2a:0x1a1a1a,0.8).setStrokeStyle(1,item?0x00ffff:0x333333);
-            if(item)this.inventoryUI.add(this.add.text(bx-15,by-15,item,{fontSize:'16px'}));
+        this.inventoryUI.add(this.add.rectangle(400,300,750,500,0x111111,0.95));
+        this.inventoryUI.add(this.add.text(400,30,'🎒 背包與裝備 (按B關閉)',{fontSize:'20px',color:'#ffd700',fontStyle:'bold'}).setOrigin(0.5));
+        
+        // 裝備欄位
+        const slots = [
+            {name:'頭盔',x:150,y:80},{name:'胸甲',x:150,y:150},{name:'主手',x:100,y:230},{name:'副手',x:200,y:230},
+            {name:'手套',x:100,y:300},{name:'鞋子',x:200,y:300},{name:'戒指',x:100,y:370},{name:'戒指',x:200,y:370}
+        ];
+        for(const s of slots){
+            const gem = this.equipment.getHeroSkills().find(g=>g.slot===s.name);
+            const bg = this.add.rectangle(s.x, s.y, 45, 45, gem?0x2a2010:0x1a1a1a, 0.9).setStrokeStyle(2, gem?0xffd700:0x444444);
+            if(gem) this.inventoryUI.add(this.add.text(s.x-18, s.y-18, gem.icon, {fontSize:'24px'}));
+            this.inventoryUI.add(this.add.text(s.x, s.y+30, s.name, {fontSize:'10px',color:'#888'}).setOrigin(0.5));
             this.inventoryUI.add(bg);
         }
-        this.inventoryUI.add(this.add.text(400,400,'金幣: '+this.gameState.gold,{fontSize:'14px',color:'#ffd700'}).setOrigin(0.5));
+        
+        // 背包網格
+        this.inventoryUI.add(this.add.text(500,70,'背包',{fontSize:'14px',color:'#c0c0c0'}).setOrigin(0.5));
+        for(let i=0;i<30;i++){
+            const row=Math.floor(i/6),col=i%6;
+            const bx=430+col*50,by=100+row*45;
+            const item=this.gameState.inventory[i];
+            const bg=this.add.rectangle(bx,by,45,40,item?0x2a2a2a:0x1a1a1a,0.8).setStrokeStyle(1,item?0x00ffff:0x333333);
+            if(item)this.inventoryUI.add(this.add.text(bx-10,by-10,item,{fontSize:'14px'}));
+            this.inventoryUI.add(bg);
+        }
+        this.inventoryUI.add(this.add.text(400,480,'💰 金幣: '+this.gameState.gold+' | 技能: SPACE切換 | 部署: 1-5',{fontSize:'11px',color:'#888'}).setOrigin(0.5));
     }
     createSkillBar(){
         const barY=560,barX=600;
