@@ -54,6 +54,9 @@ class MainScene extends Phaser.Scene {
     constructor(){super({key:'MainScene'});}
     create(){
         this.equipment=new EquipmentSystem();this.astar=new AStar();this.astar.obstacles=[{x:5,y:7},{x:6,y:7},{x:7,y:7}];
+        // 地形
+        this.terrain=[{x:8,y:5,type:'swamp',speedMod:0.7},{x:8,y:6,type:'swamp',speedMod:0.7},{x:8,y:7,type:'swamp',speedMod:0.7},{x:9,y:6,type:'swamp',speedMod:0.7}];
+        this.traps=[{x:12,y:7,active:true,damage:30,cooldown:3000,lastTrigger:0}];
         this.hero={hp:100,maxHp:100,x:80,y:300,speed:150,skills:{basic:{dmg:30,cd:500,range:80},dash:{dmg:20,cd:3000,dist:120,ready:true,lastUsed:0},ultimate:{dmg:200,cd:15000,range:150,ready:true,charge:0,max:100,lastUsed:0}},isDashing:false,targetPath:[],pathIndex:0};
         this.deploymentPoints=5;
         this.gameState={gold:100,exp:0,wave:1,baseHp:10,maxBaseHp:10,enemies:[],towers:[],isGameOver:false,inventory:[]};
@@ -72,7 +75,12 @@ class MainScene extends Phaser.Scene {
         for(let i=0;i<this.pathPoints.length;i++){const px=this.pathPoints[i].x*CONFIG.tileSize,py=this.pathPoints[i].y*CONFIG.tileSize+CONFIG.tileSize/2;if(i===0)g.moveTo(px,py);else g.lineTo(px,py);}
         g.strokePath();this.add.rectangle(19*40,7*40+20,60,60,0xf00,0.3);
     }
-    drawObstacles(){for(const o of this.astar.obstacles)this.add.rectangle(o.x*40+20,o.y*40+20,40,40,0x888,0.5);}
+    drawObstacles(){for(const o of this.astar.obstacles)this.add.rectangle(o.x*40+20,o.y*40+20,40,40,0x888,0.5);
+        // 沼澤
+        for(const t of this.terrain){this.add.rectangle(t.x*40+20,t.y*40+20,40,40,0x228b22,0.4);this.add.text(t.x*40+5,t.y*40+15,'沼',{fontSize:'10px',color:'#fff'});}
+        // 陷阱
+        for(const tr of this.traps){this.add.rectangle(tr.x*40+20,tr.y*40+20,30,30,0xff0000,0.5);this.add.text(tr.x*40+5,tr.y*40+15,'陷阱',{fontSize:'8px',color:'#fff'});}
+    }
     drawDeployPoints(){
         this.deployPointGraphics=[];
         for(let i=0;i<CONFIG.deployPoints.length;i++){
@@ -221,9 +229,19 @@ class MainScene extends Phaser.Scene {
     updateEnemies(delta,time){
         for(let i=this.gameState.enemies.length-1;i>=0;i--){
             const e=this.gameState.enemies[i];
+            // 沼澤減速
+            let terrainMod=1;
+            const ex=Math.floor(e.sprite.x/40),ey=Math.floor(e.sprite.y/40);
+            for(const t of this.terrain){if(t.x===ex&&t.y===ey){terrainMod=t.speedMod;break;}}
+            // 陷阱
+            for(const tr of this.traps){
+                if(tr.active&&Phaser.Math.Distance.Between(e.sprite.x,e.sprite.y,tr.x*40+20,tr.y*40+20)<25){
+                    if(time-tr.lastTrigger>tr.cooldown){tr.lastTrigger=time;e.hp-=tr.damage;this.showDamage(e.sprite.x,e.sprite.y-30,tr.damage);if(e.hp<=0){this.killEnemy(e,true);continue;}}
+                }
+            }
             if(e.affix&&e.affix.name==='冰'&&e.slowTimer>0)e.slowTimer-=delta;
             if(e.affix&&e.affix.name==='癒'){e.healTimer=(e.healTimer||0)+delta;if(e.healTimer>1000){e.hp=Math.min(e.maxHp,e.hp+5);e.healTimer=0;}}
-            let currentSpeed=e.speed;if(e.slowTimer>0)currentSpeed*=0.7;
+            let currentSpeed=e.speed*terrainMod;if(e.slowTimer>0)currentSpeed*=0.7;
             if(e.blocked&&e.blocker&&e.blocker.hp>0){e.blocker.hp-=0.5*delta/1000;e.blocker.hpBar.width=30*(e.blocker.hp/e.blocker.maxHp);if(e.blocker.hp<=0){if(e.blocker.gem)e.blocker.gem.isDeployed=false;e.blocker.sprite.destroy();e.blocker.text.destroy();e.blocker.hpBar.destroy();e.blocker.rangeG.destroy();this.gameState.towers[e.blocker.pointIndex]=null;}continue;}
             const tp=this.pathPoints[e.pathIndex+1];
             if(!tp){this.gameState.baseHp--;if(this.gameState.baseHp<=0)this.gameOver();e.sprite.destroy();e.text.destroy();this.gameState.enemies.splice(i,1);continue;}
@@ -249,7 +267,10 @@ class MainScene extends Phaser.Scene {
     }
     killEnemy(e,r){
         if(e.isElite&&e.affix&&e.affix.name==='火'){for(const other of this.gameState.enemies){if(other===e)continue;const d=Phaser.Math.Distance.Between(e.sprite.x,e.sprite.y,other.sprite.x,other.sprite.y);if(d<e.affix.range){other.hp-=e.affix.dmg;this.showDamage(other.sprite.x,other.sprite.y-20,e.affix.dmg);if(other.hp<=0&&!other.dead){other.dead=true;this.killEnemy(other,true);}}}}
-        if(r){this.gameState.gold+=e.reward;this.deploymentPoints+=2;this.gameState.exp+=10;this.showMessage(`+${e.reward}`,e.sprite.x,e.sprite.y-30,'#fd0');}
+        if(r){this.gameState.gold+=e.reward;this.deploymentPoints+=2;this.gameState.exp+=10;
+            // 掉落物品
+            if(Math.random()<0.3){const items=['⚔️武器','🛡️防具','💎寶石'];const item=items[Math.floor(Math.random()*items.length)];this.gameState.inventory.push(item);this.showMessage('+'+item,e.sprite.x,e.sprite.y-50,'#00ffff');}
+            this.showMessage('+'+e.reward,e.sprite.x,e.sprite.y-30,'#fd0');}
         e.sprite.destroy();e.text.destroy();const idx=this.gameState.enemies.indexOf(e);if(idx>-1)this.gameState.enemies.splice(idx,1);
     }
     updateUI(){this.goldText.setText(`金:${this.gameState.gold}`);this.costText.setText(`點:${this.deploymentPoints}`);this.waveText.setText(`波:${this.waveConfig.current}`);this.baseHpText.setText(`基:${this.gameState.baseHp}/10`);this.waveInfoText.setText(`敵:${this.waveConfig.enemiesSpawned}/${this.waveConfig.enemiesPerWave}`);}
