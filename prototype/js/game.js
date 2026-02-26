@@ -130,14 +130,33 @@ class MainScene extends Phaser.Scene {
                     const borderColor = gem ? (gem.type==='skill'?0xff6b35:gem.type==='operator'?0x4ecdc4:0x8888ff) : 0x444444;
                     
                     const slotBg = this.add.rectangle(sx, sy, socketW, socketW, bgColor, 0.9).setStrokeStyle(2, borderColor);
+                    
+                    // 寶石可拖曳（從裝備拖到背包或交換）
                     if(gem){
-                        this.inventoryUI.add(this.add.text(sx-8, sy-8, gem.icon, {fontSize:'14px'}));
+                        const gemIcon = this.add.text(sx-8, sy-8, gem.icon, {fontSize:'14px'}).setInteractive();
+                        this.input.setDraggable(gemIcon);
+                        gemIcon.dragData = { gem: gem, fromSlot: slotName, fromIndex: i };
+                        gemIcon.on('drag', (pointer, dragX, dragY) => {
+                            gemIcon.x = dragX;
+                            gemIcon.y = dragY;
+                        });
+                        gemIcon.on('dragend', (pointer, dragX, dragY) => {
+                            this.handleGemMove(gem, slotName, i, dragX, dragY);
+                            this.toggleInventory();
+                        });
                     }
+                    
+                    // 插槽可接受放置
                     slotBg.setInteractive();
+                    slotBg.slotData = { slot: slotName, index: i, x: sx, y: sy };
                     slotBg.on('pointerover', () => {
+                        slotBg.setStrokeStyle(3, 0xffff00); // 黃色高亮
                         if(gem) this.showGemTooltip(gem, sx, sy - socketW - 10);
                     });
-                    slotBg.on('pointerout', () => { if(this.tooltip){this.tooltip.destroy();this.tooltip=null;} });
+                    slotBg.on('pointerout', () => { 
+                        slotBg.setStrokeStyle(2, borderColor);
+                        if(this.tooltip){this.tooltip.destroy();this.tooltip=null;} 
+                    });
                     this.inventoryUI.add(slotBg);
                 }
                 
@@ -152,24 +171,39 @@ class MainScene extends Phaser.Scene {
             const row = Math.floor(i/6), col = i%6;
             const bx = 430 + col*42, by = 100 + row*42;
             const item = this.gameState.inventory[i];
-            const bg = this.add.rectangle(bx,by,38,38, item?(item.category==='weapon'?0x2a2a1a:item.category==='armor'?0x1a2a2a:0x1a1a2a):0x151515,0.9).setStrokeStyle(1, item?(item.category==='weapon'?0xff6b35:item.category==='armor'?0x4ecdc4:0x8888ff):0x333333);
+            const bg = this.add.rectangle(bx,by,38,38, item?(item.category==='weapon'?0x2a2a1a:item.category==='armor'?0x1a2a2a:item.category==='gem'?0x1a1a2a:0x2a2a2a):0x151515,0.9).setStrokeStyle(1, item?(item.category==='weapon'?0xff6b35:item.category==='armor'?0x4ecdc4:item.category==='gem'?0x8888ff:0x00ffff):0x333333);
             if(item) {
-                this.inventoryUI.add(this.add.text(bx-8,by-8,item.icon,{fontSize:'16px'}));
+                // 寶石可拖曳
+                if(item.category === 'gem'){
+                    const gemIcon = this.add.text(bx-8,by-8,item.icon,{fontSize:'16px'}).setInteractive();
+                    this.input.setDraggable(gemIcon);
+                    gemIcon.on('drag', (pointer, dragX, dragY) => {
+                        gemIcon.x = dragX;
+                        gemIcon.y = dragY;
+                    });
+                    gemIcon.on('dragend', (pointer, dragX, dragY) => {
+                        // 檢查是否放到插槽上
+                        this.handleGemDrop(item, i, dragX, dragY);
+                        this.toggleInventory(); // 刷新UI
+                    });
+                }else{
+                    this.inventoryUI.add(this.add.text(bx-8,by-8,item.icon,{fontSize:'16px'}));
+                }
                 // Hover 顯示物品詳情 + 點擊穿戴
                 const hitArea = this.add.rectangle(bx,by,36,36,0x000,0).setInteractive();
                 hitArea.on('pointerover', () => {
                     if(item.category === 'gem'){
                         this.showGemTooltip(item, bx, by - 30);
                     }else{
-                        // 添加穿戴提示
                         this.showItemTooltip(item, bx, by - 30, true);
                     }
                 });
                 hitArea.on('pointerout', () => { if(this.tooltip){this.tooltip.destroy();this.tooltip=null;} });
-                hitArea.on('pointerdown', () => {
-                    // 穿戴裝備
-                    this.equipItem(item, i);
-                });
+                if(item.category !== 'gem'){
+                    hitArea.on('pointerdown', () => {
+                        this.equipItem(item, i);
+                    });
+                }
                 this.inventoryUI.add(hitArea);
             }
             this.inventoryUI.add(bg);
@@ -314,6 +348,107 @@ class MainScene extends Phaser.Scene {
         
         this.showMessage('穿戴: '+item.name, 400, 300, '#4ecdc4');
         this.toggleInventory(); // 重新整理UI
+    }
+    
+    // 處理從背包拖曳寶石到插槽
+    handleGemDrop(gem, fromInventoryIndex, dropX, dropY){
+        // 檢查是否放到某個插槽附近
+        const slotOrder = ['雙手武器','胸甲','頭盔','手套','鞋子','主手','副手'];
+        const slotPos = {
+            '雙手武器':{x:180,y:100},'胸甲':{x:180,y:170},'頭盔':{x:180,y:240},
+            '手套':{x:180,y:310},'鞋子':{x:180,y:380},'主手':{x:100,y:450},
+            '副手':{x:260,y:450}
+        };
+        
+        for(const slotName of slotOrder){
+            const pos = slotPos[slotName];
+            const eq = this.equipment.equipment[slotName];
+            if(!eq || !eq.item) continue;
+            
+            const numSlots = eq.item.slots || 0;
+            if(numSlots === 0) continue;
+            
+            const socketW = 24, gap = 2;
+            const totalW = numSlots * (socketW + gap);
+            const startX = pos.x - totalW/2 + socketW/2;
+            
+            for(let i=0; i<numSlots; i++){
+                const sx = startX + i * (socketW + gap);
+                const sy = pos.y;
+                const dist = Math.sqrt((dropX-sx)**2 + (dropY-sy)**2);
+                
+                if(dist < 30){ // 在插槽範圍內
+                    // 如果插槽已有寶石，交換
+                    const existingGem = eq.gems[i];
+                    eq.gems[i] = gem;
+                    
+                    // 從背包移除
+                    this.gameState.inventory.splice(fromInventoryIndex, 1);
+                    
+                    // 如果有 existingGem，放回背包
+                    if(existingGem){
+                        this.gameState.inventory.push(existingGem);
+                        this.showMessage('交換: '+gem.name, 400, 300, '#ffff00');
+                    }else{
+                        this.showMessage('嵌入: '+gem.name, 400, 300, '#4ecdc4');
+                    }
+                    return;
+                }
+            }
+        }
+        
+        // 沒放到任何插槽，還原位置
+        this.showMessage('放置失敗', 400, 300, '#ff0000');
+    }
+    
+    // 處理裝備內移動寶石
+    handleGemMove(gem, fromSlot, fromIndex, dropX, dropY){
+        const slotOrder = ['雙手武器','胸甲','頭盔','手套','鞋子','主手','副手'];
+        const slotPos = {
+            '雙手武器':{x:180,y:100},'胸甲':{x:180,y:170},'頭盔':{x:180,y:240},
+            '手套':{x:180,y:310},'鞋子':{x:180,y:380},'主手':{x:100,y:450},
+            '副手':{x:260,y:450}
+        };
+        
+        for(const slotName of slotOrder){
+            const pos = slotPos[slotName];
+            const eq = this.equipment.equipment[slotName];
+            if(!eq || !eq.item) continue;
+            
+            const numSlots = eq.item.slots || 0;
+            if(numSlots === 0) continue;
+            
+            const socketW = 24, gap = 2;
+            const totalW = numSlots * (socketW + gap);
+            const startX = pos.x - totalW/2 + socketW/2;
+            
+            for(let i=0; i<numSlots; i++){
+                const sx = startX + i * (socketW + gap);
+                const sy = pos.y;
+                const dist = Math.sqrt((dropX-sx)**2 + (dropY-sy)**2);
+                
+                if(dist < 30){
+                    // 交換寶石
+                    const targetGem = eq.gems[i];
+                    const sourceEq = this.equipment.equipment[fromSlot];
+                    
+                    eq.gems[i] = gem;
+                    sourceEq.gems[fromIndex] = targetGem;
+                    
+                    if(targetGem){
+                        this.showMessage('交換寶石', 400, 300, '#ffff00');
+                    }else{
+                        this.showMessage('移動寶石', 400, 300, '#4ecdc4');
+                    }
+                    return;
+                }
+            }
+        }
+        
+        // 拖曳到背包 - 卸下寶石
+        this.gameState.inventory.push(gem);
+        this.equipment.equipment[fromSlot].gems[fromIndex] = null;
+        this.showMessage('卸下寶石: '+gem.name, 400, 300, '#888');
     }
     createSkillBar(){
         const barY=560,barX=600;
