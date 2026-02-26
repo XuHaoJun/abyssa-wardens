@@ -1,10 +1,11 @@
-// ========== 基礎配置 ==========
-const GAME_GAME_CONFIG = { width:800, height:600, tileSize:40, cols:20, rows:15,
+// ========== Abyssal Wardens - 裝備數據 ==========
+
+const CONFIG = { width:800, height:600, tileSize:40, cols:20, rows:15,
     deployPoints:[{x:100,y:200,type:'ground'},{x:100,y:400,type:'ground'},{x:300,y:200,type:'highground'},{x:300,y:400,type:'highground'},{x:500,y:200,type:'highground'},{x:500,y:400,type:'highground'},{x:700,y:200,type:'ground'},{x:700,y:400,type:'ground'}] };
 
 const ELITE_AFFIXES = { FROST:{name:'冰',icon:'❄️',color:0x00ffff},ARMOR:{name:'盾',icon:'🛡️',color:0x888888,hpBonus:1.5},FIRE:{name:'火',icon:'🔥',color:0xff4400,dmg:50,range:60},HEAL:{name:'癒',icon:'💚',color:0x00ff00} };
 
-// ========== 裝備物品 (Items) - 來自 docs/balance/items/ ==========
+// ========== 裝備物品 (Items) ==========
 const WEAPONS = [
     {id:'weapon_001',name:'長劍',icon:'🗡️',slots:3,stats:{damage:25,attack_speed:1.2}},
     {id:'weapon_002',name:'巨斧',icon:'🪓',slots:6,stats:{damage:50,attack_speed:0.8}},
@@ -36,7 +37,7 @@ const BOOTS = [
     {id:'boots_002',name:'鐵靴',icon:'👢',slots:4,stats:{armor:18,move_speed:2}}
 ];
 
-// ========== 寶石 (Gems) - 來自 docs/balance/gems/ ==========
+// ========== 寶石 (Gems) ==========
 const SKILL_GEMS = [
     {id:'skill_001',name:'旋風斬',icon:'🌀',type:'skill',damage_percent:80,cooldown:10,range:4},
     {id:'skill_002',name:'多重箭',icon:'🏹',type:'skill',damage_percent:60,cooldown:8,range:15},
@@ -62,9 +63,6 @@ const SUPPORT_GEMS = [
     {id:'supp_014',name:'減速',icon:'❄️',type:'support',slow_percent:20}
 ];
 
-const ALL_GEMS = [...SKILL_GEMS,...OPERATOR_GEMS,...SUPPORT_GEMS];
-
-// ========== 欄位定義 ==========
 const EQUIP_SLOTS = {
     '雙手武器':{icon:'⚔️'},'胸甲':{icon:'🛡️'},'頭盔':{icon:'⛑️'},
     '手套':{icon:'🧤'},'鞋子':{icon:'👢'},'主手':{icon:'🗡️'},
@@ -141,14 +139,6 @@ class EquipmentSystem {
         }
         return false;
     }
-}
-
-// Expose to global scope for game.js
-if (typeof window !== 'undefined') {
-    window.GAME_CONFIG = GAME_CONFIG;
-    window.ELITE_AFFIXES = ELITE_AFFIXES;
-    window.EQUIP_SLOTS = EQUIP_SLOTS;
-    window.EquipmentSystem = EquipmentSystem;
 }
 
 // ========== AStar Pathfinding ==========
