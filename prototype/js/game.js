@@ -66,12 +66,12 @@ class MainScene extends Phaser.Scene {
         this.inventoryUI.add(this.add.rectangle(400,300,760,540,0x111111,0.98));
         this.inventoryUI.add(this.add.text(400,25,'🎒 裝備與背包 (按B關閉)',{fontSize:'22px',color:'#ffd700',fontStyle:'bold'}).setOrigin(0.5));
         
-        // 8 裝備欄位 (GDD 2)
+        // 9 裝備欄位
         const slotOrder = ['雙手武器','胸甲','頭盔','手套','鞋子','主手','副手','項鍊','戒指'];
         const slotPos = {
             '雙手武器':{x:180,y:100},'胸甲':{x:180,y:170},'頭盔':{x:180,y:240},
             '手套':{x:180,y:310},'鞋子':{x:180,y:380},'主手':{x:100,y:450},
-            '副手':{x:260,y:450},'項鍊':{x:180,y:450}
+            '副手':{x:260,y:450},'項鍊':{x:180,y:450},'戒指':{x:180,y:520}
         };
         
         for(const slotName of slotOrder){
@@ -80,44 +80,118 @@ class MainScene extends Phaser.Scene {
             const eq = this.equipment.equipment[slotName];
             const item = eq ? eq.item : null;
             const gems = eq ? eq.gems : [];
+            const numSlots = item ? item.slots : 0;
             
-            // 欄位名
-            this.inventoryUI.add(this.add.text(pos.x, pos.y-35, item ? item.icon+' '+item.name : slotDef.icon+' '+slotName, {fontSize:'12px',color:'#888'}).setOrigin(0.5));
+            // 物品名稱 + 圖示
+            const itemName = item ? item.name : '(空)';
+            const itemIcon = item ? item.icon : slotDef.icon;
+            const itemText = this.add.text(pos.x, pos.y-38, itemIcon+' '+itemName, {fontSize:'14px',color:'#ffd700',fontStyle:'bold'}).setOrigin(0.5);
+            this.inventoryUI.add(itemText);
             
-            // 插槽網格
-            const socketW = 28, gap = 2;
-            const totalW = gems.length * (socketW + gap);
-            const startX = pos.x - totalW/2 + socketW/2;
-            
-            for(let i=0; i<gems.length; i++){
-                const gem = gems[i];
-                const sx = startX + i * (socketW + gap);
-                const sy = pos.y;
-                const bgColor = gem ? (gem.type==='skill'?0x3a2010:gem.type==='operator'?0x102a20:0x10103a) : 0x1a1a1a;
-                const borderColor = gem ? (gem.type==='skill'?0xff6b35:gem.type==='operator'?0x4ecdc4:0x8888ff) : 0x444444;
-                
-                const slotBg = this.add.rectangle(sx, sy, socketW, socketW, bgColor, 0.9).setStrokeStyle(2, borderColor);
-                if(gem){
-                    this.inventoryUI.add(this.add.text(sx-10, sy-10, gem.icon, {fontSize:'18px'}));
-                }
-                // Hover 顯示物品資訊
-                slotBg.setInteractive();
-                slotBg.on('pointerover', () => {
-                    if(gem) this.showItemTooltip(gem, sx, sy - socketW - 10);
+            // 物品 hover tooltip
+            if(item){
+                const hitArea = this.add.rectangle(pos.x, pos.y-38, 120, 20, 0x000, 0).setInteractive();
+                hitArea.on('pointerover', () => {
+                    let tipLines = [item.name+' ('+item.id+')'];
+                    if(item.stats){
+                        if(item.stats.damage) tipLines.push('⚔️ 攻擊: '+item.stats.damage);
+                        if(item.stats.armor) tipLines.push('🛡️ 防禦: '+item.stats.armor);
+                        if(item.stats.block) tipLines.push('🚫 格擋: '+item.stats.block);
+                        if(item.stats.evasion) tipLines.push('💨 閃避: '+item.stats.evasion+'%');
+                        if(item.stats.attack_speed) tipLines.push('⚡ 攻速: '+item.stats.attack_speed);
+                        if(item.stats.spell_power) tipLines.push('✨ 法術: '+item.stats.spell_power);
+                    }
+                    tipLines.push('💎 插槽: '+item.slots+' 洞');
+                    this.showItemTooltip({name:item.name,stats:item.stats,slots:item.slots}, pos.x, pos.y-60);
                 });
-                slotBg.on('pointerout', () => {
-                    if(this.tooltip) { this.tooltip.destroy(); this.tooltip = null; }
-                });
-                this.inventoryUI.add(slotBg);
+                hitArea.on('pointerout', () => { if(this.tooltip){this.tooltip.destroy();this.tooltip=null;} });
+                this.inventoryUI.add(hitArea);
             }
             
-            // 連線數
-            if(slotDef.links > 0){
-                this.inventoryUI.add(this.add.text(pos.x, pos.y+25, '🔗'+slotDef.links, {fontSize:'10px',color:'#4ecdc4'}).setOrigin(0.5));
+            // 插槽網格 - 顯示所有插槽
+            if(numSlots > 0){
+                const socketW = 24, gap = 2;
+                const totalW = numSlots * (socketW + gap);
+                const startX = pos.x - totalW/2 + socketW/2;
+                
+                for(let i=0; i<numSlots; i++){
+                    const gem = gems[i] || null;
+                    const sx = startX + i * (socketW + gap);
+                    const sy = pos.y;
+                    const bgColor = gem ? (gem.type==='skill'?0x3a2010:gem.type==='operator'?0x102a20:0x10103a) : 0x1a1a1a;
+                    const borderColor = gem ? (gem.type==='skill'?0xff6b35:gem.type==='operator'?0x4ecdc4:0x8888ff) : 0x444444;
+                    
+                    const slotBg = this.add.rectangle(sx, sy, socketW, socketW, bgColor, 0.9).setStrokeStyle(2, borderColor);
+                    if(gem){
+                        this.inventoryUI.add(this.add.text(sx-8, sy-8, gem.icon, {fontSize:'14px'}));
+                    }
+                    slotBg.setInteractive();
+                    slotBg.on('pointerover', () => {
+                        if(gem) this.showGemTooltip(gem, sx, sy - socketW - 10);
+                    });
+                    slotBg.on('pointerout', () => { if(this.tooltip){this.tooltip.destroy();this.tooltip=null;} });
+                    this.inventoryUI.add(slotBg);
+                }
+                
+                // 洞數
+                this.inventoryUI.add(this.add.text(pos.x, pos.y+20, '💎'+numSlots+'洞', {fontSize:'10px',color:'#4ecdc4'}).setOrigin(0.5));
             }
         }
         
         // 背包
+        this.inventoryUI.add(this.add.text(560,70,'🎒 背包',{fontSize:'14px',color:'#c0c0c0'}).setOrigin(0.5));
+        for(let i=0; i<30; i++){
+            const row = Math.floor(i/6), col = i%6;
+            const bx = 430 + col*42, by = 100 + row*42;
+            const item = this.gameState.inventory[i];
+            const bg = this.add.rectangle(bx,by,38,38, item?0x2a2a2a:0x151515,0.9).setStrokeStyle(1, item?0x00ffff:0x333333);
+            if(item) this.inventoryUI.add(this.add.text(bx-8,by-8,item,{fontSize:'14px'}));
+            this.inventoryUI.add(bg);
+        }
+        
+        // 可部署 Operators
+        this.inventoryUI.add(this.add.text(560,320,'🛡️ 可部署',{fontSize:'14px',color:'#c0c0c0'}).setOrigin(0.5));
+        const ops = this.equipment.getDeployableOperators();
+        let oy = 350;
+        for(const op of ops){
+            const opBg = this.add.rectangle(560, oy, 160, 28, 0x1a3a1a, 0.8).setStrokeStyle(1, 0x4ecdc4).setInteractive();
+            opBg.on('pointerover', () => this.showGemTooltip(op, 560, oy-20));
+            opBg.on('pointerout', () => { if(this.tooltip){this.tooltip.destroy();this.tooltip=null;} });
+            this.inventoryUI.add(this.add.text(560-70, oy-5, op.icon+' '+op.name, {fontSize:'12px',color:'#4ecdc4'}));
+            this.inventoryUI.add(this.add.text(560+70, oy-5, '💰'+op.cost, {fontSize:'11px',color:'#fd0'}).setOrigin(0.5));
+            this.inventoryUI.add(opBg);
+            oy += 34;
+        }
+        
+        this.inventoryUI.add(this.add.text(400, 530, '💡 點擊物品查看屬性 | 點擊部署點放置 Operators', {fontSize:'11px',color:'#666'}).setOrigin(0.5));
+    }
+    
+    showGemTooltip(gem, x, y){
+        if(this.tooltip) this.tooltip.destroy();
+        this.tooltip = this.add.container(x, y).setDepth(100);
+        const lines = [gem.name];
+        const typeColor = gem.type === 'skill' ? '#ff6b35' : gem.type === 'operator' ? '#4ecdc4' : '#8888ff';
+        lines.push('類型: ' + (gem.type === 'skill' ? '🔴 技能石' : gem.type === 'operator' ? '🟡 陣地石' : '🔵 輔助石'));
+        if(gem.damage_percent) lines.push('⚔️ 傷害: ' + gem.damage_percent + '%');
+        if(gem.cooldown) lines.push('⏱️ 冷卻: ' + gem.cooldown + '秒');
+        if(gem.range) lines.push('📏 範圍: ' + gem.range);
+        if(gem.hp) lines.push('❤️ 生命: ' + gem.hp);
+        if(gem.def) lines.push('🛡️ 防禦: ' + gem.def);
+        if(gem.block) lines.push('🚫 阻擋: ' + gem.block);
+        if(gem.cost) lines.push('💰 花費: ' + gem.cost);
+        if(gem.category) lines.push('🏷️ 職業: ' + gem.category);
+        if(gem.area_percent) lines.push('📐 範圍+: ' + gem.area_percent + '%');
+        if(gem.projectile_count) lines.push('🎯 投射+: ' + gem.projectile_count);
+        if(gem.chain_count) lines.push('⛓️ 連鎖: ' + gem.chain_count);
+        if(gem.flat_fire_damage) lines.push('🔥 火焰: +' + gem.flat_fire_damage);
+        if(gem.slow_percent) lines.push('❄️ 減速: ' + gem.slow_percent + '%');
+        
+        const h = lines.length * 16 + 10;
+        const w = 160;
+        this.tooltip.add(this.add.rectangle(0, 0, w, h, 0x000000, 0.95).setStrokeStyle(1, 0xffd700));
+        for(let i = 0; i < lines.length; i++){
+            this.tooltip.add(this.add.text(-w/2 + 5, -h/2 + 8 + i * 15, lines[i], {fontSize:'11px', color:'#fff'}));
+        }
         this.inventoryUI.add(this.add.text(560,70,'🎒 背包 (30格)',{fontSize:'14px',color:'#c0c0c0'}).setOrigin(0.5));
         for(let i=0; i<30; i++){
             const row = Math.floor(i/6), col = i%6;

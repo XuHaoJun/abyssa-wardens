@@ -72,14 +72,15 @@ const EQUIP_SLOTS = {
 // ========== 裝備系統 ==========
 class EquipmentSystem {
     constructor(){
+        // 預設裝備 + 寶石
         this.equipment = {
-            '雙手武器': { item: WEAPONS[0], gems: Array(3).fill(null) },
-            '胸甲': { item: ARMORS[0], gems: Array(4).fill(null) },
-            '頭盔': { item: HELMETS[0], gems: Array(4).fill(null) },
-            '手套': { item: GLOVES[0], gems: Array(4).fill(null) },
-            '鞋子': { item: BOOTS[0], gems: Array(4).fill(null) },
-            '主手': { item: WEAPONS[5], gems: Array(2).fill(null) },
-            '副手': { item: WEAPONS[4], gems: Array(3).fill(null) },
+            '雙手武器': { item: WEAPONS[0], gems: [SKILL_GEMS[0], SKILL_GEMS[3], null] },  // 長劍 + 旋風斬 + 隕石術
+            '胸甲': { item: ARMORS[0], gems: [OPERATOR_GEMS[0], OPERATOR_GEMS[3], OPERATOR_GEMS[5], null] },  // 皮甲 + 盾衛 + 狙擊手 + 光牧
+            '頭盔': { item: HELMETS[0], gems: [SKILL_GEMS[4], SUPPORT_GEMS[0], SUPPORT_GEMS[3], null] },  // 皮帽 + 閃電脈衝 + 範圍擴大 + 附加火焰
+            '手套': { item: GLOVES[0], gems: [SUPPORT_GEMS[1], SUPPORT_GEMS[4], null, null] },  // 皮手套 + 高階多重 + 減速
+            '鞋子': { item: BOOTS[0], gems: [SUPPORT_GEMS[2], null, null, null] },  // 皮靴 + 連鎖
+            '主手': { item: WEAPONS[5], gems: [SKILL_GEMS[1], null] },  // 匕首 + 多重箭
+            '副手': { item: WEAPONS[4], gems: [OPERATOR_GEMS[1], null, null] },  // 盾牌 + 鐵壁
             '項鍊': { item: null, gems: [] },
             '戒指': { item: null, gems: [] }
         };
