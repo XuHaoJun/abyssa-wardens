@@ -1,20 +1,11 @@
 // Abyssal Wardens 原型 - Task 4: 波次與精英怪
-const CONFIG = { width:800, height:600, tileSize:40, cols:20, rows:15,
-    deployPoints:[{x:100,y:200,type:'ground'},{x:100,y:400,type:'ground'},{x:300,y:200,type:'highground'},{x:300,y:400,type:'highground'},{x:500,y:200,type:'highground'},{x:500,y:400,type:'highground'},{x:700,y:200,type:'ground'},{x:700,y:400,type:'ground'}] };
-
-const ELITE_AFFIXES = {
-    FROST:{name:'冰',icon:'❄️',color:0x00ffff,effect:'減速30%',duration:2000},
-    ARMOR:{name:'盾',icon:'🛡️',color:0x888888,effect:'護甲+50',hpBonus:1.5},
-    FIRE:{name:'火',icon:'🔥',color:0xff4400,effect:'死亡爆炸',dmg:50,range:60},
-    HEAL:{name:'癒',icon:'💚',color:0x00ff00,effect:'每秒回血'}
-};
 
 // GDD 裝備系統
 
 class AStar {
     constructor(){this.obstacles=[];}
     heuristic(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y);}
-    getNeighbors(node){const dirs=[{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];const neighbors=[];for(const dir of dirs){const nx=node.x+dir.x,ny=node.y+dir.y;if(nx>=0&&nx<GAME_CONFIG.cols&&ny>=0&&ny<GAME_CONFIG.rows&&!this.isObstacle(nx,ny))neighbors.push({x:nx,y:ny});}return neighbors;}
+    getNeighbors(node){const dirs=[{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];const neighbors=[];for(const dir of dirs){const nx=node.x+dir.x,ny=node.y+dir.y;if(nx>=0&&nx<CONFIG.cols&&ny>=0&&ny<CONFIG.rows&&!this.isObstacle(nx,ny))neighbors.push({x:nx,y:ny});}return neighbors;}
     isObstacle(x,y){return this.obstacles.some(o=>o.x===x&&o.y===y);}
     findPath(start,end){
         const openSet=[start],closedSet=new Set(),cameFrom=new Map(),gScore=new Map(),fScore=new Map();
@@ -55,11 +46,11 @@ class MainScene extends Phaser.Scene {
         this.input.on('pointerdown',this.handleClick,this);this.input.mouse.disableContextMenu();
     }
     update(time,delta){if(this.gameState.isGameOver||this.gameState.isPaused)return;this.updateWaveLogic();this.updateHero(delta,time);this.updateSkills(time);this.updateBlockers();this.updateEnemies(delta,time);this.updateTowers(delta);this.updateUI();if(this.keys[Phaser.Input.Keyboard.KeyCodes.B]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.B]))this.toggleInventory();if(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]&&Phaser.Input.Keyboard.JustDown(this.keys[Phaser.Input.Keyboard.KeyCodes.ESC]))this.togglePause();}
-    drawBackground(){this.add.grid(400,300,800,600,GAME_CONFIG.tileSize,GAME_CONFIG.tileSize,0x1a1a2e,0.5,0x2a2a4e,0.3);}
+    drawBackground(){this.add.grid(400,300,800,600,CONFIG.tileSize,CONFIG.tileSize,0x1a1a2e,0.5,0x2a2a4e,0.3);}
     drawPath(){
         this.pathPoints=[{x:0,y:7},{x:4,y:7},{x:4,y:3},{x:10,y:3},{x:10,y:11},{x:15,y:11},{x:15,y:7},{x:20,y:7}];
         const g=this.add.graphics();g.lineStyle(20,0x4a4a6e,1);g.beginPath();
-        for(let i=0;i<this.pathPoints.length;i++){const px=this.pathPoints[i].x*GAME_CONFIG.tileSize,py=this.pathPoints[i].y*GAME_CONFIG.tileSize+GAME_CONFIG.tileSize/2;if(i===0)g.moveTo(px,py);else g.lineTo(px,py);}
+        for(let i=0;i<this.pathPoints.length;i++){const px=this.pathPoints[i].x*CONFIG.tileSize,py=this.pathPoints[i].y*CONFIG.tileSize+CONFIG.tileSize/2;if(i===0)g.moveTo(px,py);else g.lineTo(px,py);}
         g.strokePath();this.add.rectangle(19*40,7*40+20,60,60,0xf00,0.3);
     }
     drawObstacles(){for(const o of this.astar.obstacles)this.add.rectangle(o.x*40+20,o.y*40+20,40,40,0x888,0.5);
@@ -70,8 +61,8 @@ class MainScene extends Phaser.Scene {
     }
     drawDeployPoints(){
         this.deployPointGraphics=[];
-        for(let i=0;i<GAME_CONFIG.deployPoints.length;i++){
-            const p=GAME_CONFIG.deployPoints[i],c=p.type==='highground'?0x4ecdc4:0xffe66d;
+        for(let i=0;i<CONFIG.deployPoints.length;i++){
+            const p=CONFIG.deployPoints[i],c=p.type==='highground'?0x4ecdc4:0xffe66d;
             const rect=this.add.rectangle(p.x,p.y,35,35,c,0.4).setStrokeStyle(2,c).setInteractive();
             rect.pointData=p;rect.pointIndex=i;this.deployPointGraphics.push(rect);
             this.add.text(p.x-10,p.y-5,p.type==='highground'?'高':'平',{fontSize:'12px',color:'#fff'});
