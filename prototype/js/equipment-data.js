@@ -63,6 +63,8 @@ const SUPPORT_GEMS = [
     {id:'supp_014',name:'減速',icon:'❄️',type:'support',slow_percent:20}
 ];
 
+const ALL_GEMS = [...SKILL_GEMS,...OPERATOR_GEMS,...SUPPORT_GEMS];
+
 const EQUIP_SLOTS = {
     '雙手武器':{icon:'⚔️'},'胸甲':{icon:'🛡️'},'頭盔':{icon:'⛑️'},
     '手套':{icon:'🧤'},'鞋子':{icon:'👢'},'主手':{icon:'🗡️'},

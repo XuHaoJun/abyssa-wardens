@@ -144,8 +144,21 @@ class MainScene extends Phaser.Scene {
             const row = Math.floor(i/6), col = i%6;
             const bx = 430 + col*42, by = 100 + row*42;
             const item = this.gameState.inventory[i];
-            const bg = this.add.rectangle(bx,by,38,38, item?0x2a2a2a:0x151515,0.9).setStrokeStyle(1, item?0x00ffff:0x333333);
-            if(item) this.inventoryUI.add(this.add.text(bx-8,by-8,item,{fontSize:'14px'}));
+            const bg = this.add.rectangle(bx,by,38,38, item?(item.category==='weapon'?0x2a2a1a:item.category==='armor'?0x1a2a2a:0x1a1a2a):0x151515,0.9).setStrokeStyle(1, item?(item.category==='weapon'?0xff6b35:item.category==='armor'?0x4ecdc4:0x8888ff):0x333333);
+            if(item) {
+                this.inventoryUI.add(this.add.text(bx-8,by-8,item.icon,{fontSize:'16px'}));
+                // Hover 顯示物品詳情
+                const hitArea = this.add.rectangle(bx,by,36,36,0x000,0).setInteractive();
+                hitArea.on('pointerover', () => {
+                    if(item.category === 'gem'){
+                        this.showGemTooltip(item, bx, by - 30);
+                    }else{
+                        this.showItemTooltip(item, bx, by - 30);
+                    }
+                });
+                hitArea.on('pointerout', () => { if(this.tooltip){this.tooltip.destroy();this.tooltip=null;} });
+                this.inventoryUI.add(hitArea);
+            }
             this.inventoryUI.add(bg);
         }
         
@@ -430,8 +443,27 @@ class MainScene extends Phaser.Scene {
     killEnemy(e,r){
         if(e.isElite&&e.affix&&e.affix.name==='火'){for(const other of this.gameState.enemies){if(other===e)continue;const d=Phaser.Math.Distance.Between(e.sprite.x,e.sprite.y,other.sprite.x,other.sprite.y);if(d<e.affix.range){other.hp-=e.affix.dmg;this.showDamage(other.sprite.x,other.sprite.y-20,e.affix.dmg);if(other.hp<=0&&!other.dead){other.dead=true;this.killEnemy(other,true);}}}}
         if(r){this.gameState.gold+=e.reward;this.deploymentPoints+=2;this.gameState.exp+=10;
-            // 掉落物品
-            if(Math.random()<0.3){const items=['⚔️武器','🛡️防具','💎寶石'];const item=items[Math.floor(Math.random()*items.length)];this.gameState.inventory.push(item);this.showMessage('+'+item,e.sprite.x,e.sprite.y-50,'#00ffff');}
+            // 掉落物品 - 真正掉落裝備/寶石
+            if(Math.random()<0.4){
+                const roll = Math.random();
+                let drop = null;
+                if(roll < 0.33){
+                    // 掉落武器
+                    drop = {...WEAPONS[Math.floor(Math.random()*WEAPONS.length)]};
+                    drop.category = 'weapon';
+                }else if(roll < 0.66){
+                    // 掉落防具
+                    drop = {...ARMORS[Math.floor(Math.random()*ARMORS.length)]};
+                    drop.category = 'armor';
+                }else{
+                    // 掉落寶石
+                    drop = {...ALL_GEMS[Math.floor(Math.random()*ALL_GEMS.length)]};
+                    drop.category = 'gem';
+                }
+                // 存入背包
+                this.gameState.inventory.push(drop);
+                this.showMessage('+'+drop.icon+' '+drop.name, e.sprite.x, e.sprite.y-50, '#00ffff');
+            }
             this.showMessage('+'+e.reward,e.sprite.x,e.sprite.y-30,'#fd0');}
         e.sprite.destroy();e.text.destroy();const idx=this.gameState.enemies.indexOf(e);if(idx>-1)this.gameState.enemies.splice(idx,1);
     }
