@@ -116,18 +116,20 @@ class MainScene extends Phaser.Scene {
         for(const slotName of slotOrder){
             const slotDef = EQUIP_SLOTS[slotName];
             const pos = slotPos[slotName] || {x:180,y:450};
-            const sockets = this.equipment.slots[slotName];
+            const eq = this.equipment.equipment[slotName];
+            const item = eq ? eq.item : null;
+            const gems = eq ? eq.gems : [];
             
             // 欄位名
-            this.inventoryUI.add(this.add.text(pos.x, pos.y-35, slotDef.icon+' '+slotName, {fontSize:'12px',color:'#888'}).setOrigin(0.5));
+            this.inventoryUI.add(this.add.text(pos.x, pos.y-35, item ? item.icon+' '+item.name : slotDef.icon+' '+slotName, {fontSize:'12px',color:'#888'}).setOrigin(0.5));
             
             // 插槽網格
             const socketW = 28, gap = 2;
-            const totalW = sockets.length * (socketW + gap);
+            const totalW = gems.length * (socketW + gap);
             const startX = pos.x - totalW/2 + socketW/2;
             
-            for(let i=0; i<sockets.length; i++){
-                const gem = sockets[i];
+            for(let i=0; i<gems.length; i++){
+                const gem = gems[i];
                 const sx = startX + i * (socketW + gap);
                 const sy = pos.y;
                 const bgColor = gem ? (gem.type==='skill'?0x3a2010:gem.type==='operator'?0x102a20:0x10103a) : 0x1a1a1a;

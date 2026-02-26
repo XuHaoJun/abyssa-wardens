@@ -150,3 +150,30 @@ if (typeof window !== 'undefined') {
     window.EQUIP_SLOTS = EQUIP_SLOTS;
     window.EquipmentSystem = EquipmentSystem;
 }
+
+// ========== AStar Pathfinding ==========
+class AStar {
+    constructor(){this.obstacles=[];}
+    heuristic(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y);}
+    getNeighbors(node){const dirs=[{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];const neighbors=[];for(const dir of dirs){const nx=node.x+dir.x,ny=node.y+dir.y;if(nx>=0&&nx<CONFIG.cols&&ny>=0&&ny<CONFIG.rows&&!this.isObstacle(nx,ny))neighbors.push({x:nx,y:ny});}return neighbors;}
+    isObstacle(x,y){return this.obstacles.some(o=>o.x===x&&o.y===y);}
+    findPath(start,end){
+        const openSet=[start],closedSet=new Set(),cameFrom=new Map(),gScore=new Map(),fScore=new Map();
+        const key=n=>`${n.x},${n.y}`;
+        gScore.set(key(start),0);fScore.set(key(start),this.heuristic(start,end));
+        while(openSet.length>0){
+            openSet.sort((a,b)=>(fScore.get(key(a))||Infinity)-(fScore.get(key(b))||Infinity));
+            const current=openSet.shift();
+            if(current.x===end.x&&current.y===end.y){const path=[current];while(cameFrom.has(key(current))){current=cameFrom.get(key(current));path.unshift(current);}return path;}
+            closedSet.add(key(current));
+            for(const neighbor of this.getNeighbors(current)){
+                if(closedSet.has(key(neighbor)))continue;
+                const tentativeG=(gScore.get(key(current))||Infinity)+1;
+                if(!openSet.find(n=>n.x===neighbor.x&&n.y===neighbor.y))openSet.push(neighbor);
+                else if(tentativeG>=(gScore.get(key(neighbor))||Infinity))continue;
+                cameFrom.set(key(neighbor),current);gScore.set(key(neighbor),tentativeG);fScore.set(key(neighbor),tentativeG+this.heuristic(neighbor,end));
+            }
+        }
+        return[];
+    }
+}
