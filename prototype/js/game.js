@@ -88,7 +88,7 @@ class MainScene extends Phaser.Scene {
             const itemText = this.add.text(pos.x, pos.y-38, itemIcon+' '+itemName, {fontSize:'14px',color:'#ffd700',fontStyle:'bold'}).setOrigin(0.5);
             this.inventoryUI.add(itemText);
             
-            // 物品 hover tooltip
+            // 物品 hover tooltip + 點擊卸下
             if(item){
                 const hitArea = this.add.rectangle(pos.x, pos.y-38, 120, 20, 0x000, 0).setInteractive();
                 hitArea.on('pointerover', () => {
@@ -102,9 +102,17 @@ class MainScene extends Phaser.Scene {
                         if(item.stats.spell_power) tipLines.push('✨ 法術: '+item.stats.spell_power);
                     }
                     tipLines.push('💎 插槽: '+item.slots+' 洞');
+                    tipLines.push('👆 點擊卸下');
                     this.showItemTooltip({name:item.name,stats:item.stats,slots:item.slots}, pos.x, pos.y-60);
                 });
                 hitArea.on('pointerout', () => { if(this.tooltip){this.tooltip.destroy();this.tooltip=null;} });
+                hitArea.on('pointerdown', () => {
+                    // 卸下裝備到背包
+                    this.gameState.inventory.push(item);
+                    this.equipment.equipment[slotName] = { item: null, gems: [] };
+                    this.showMessage('卸下: '+item.name, 400, 300, '#4ecdc4');
+                    this.toggleInventory(); // 重新整理UI
+                });
                 this.inventoryUI.add(hitArea);
             }
             
@@ -147,16 +155,21 @@ class MainScene extends Phaser.Scene {
             const bg = this.add.rectangle(bx,by,38,38, item?(item.category==='weapon'?0x2a2a1a:item.category==='armor'?0x1a2a2a:0x1a1a2a):0x151515,0.9).setStrokeStyle(1, item?(item.category==='weapon'?0xff6b35:item.category==='armor'?0x4ecdc4:0x8888ff):0x333333);
             if(item) {
                 this.inventoryUI.add(this.add.text(bx-8,by-8,item.icon,{fontSize:'16px'}));
-                // Hover 顯示物品詳情
+                // Hover 顯示物品詳情 + 點擊穿戴
                 const hitArea = this.add.rectangle(bx,by,36,36,0x000,0).setInteractive();
                 hitArea.on('pointerover', () => {
                     if(item.category === 'gem'){
                         this.showGemTooltip(item, bx, by - 30);
                     }else{
-                        this.showItemTooltip(item, bx, by - 30);
+                        // 添加穿戴提示
+                        this.showItemTooltip(item, bx, by - 30, true);
                     }
                 });
                 hitArea.on('pointerout', () => { if(this.tooltip){this.tooltip.destroy();this.tooltip=null;} });
+                hitArea.on('pointerdown', () => {
+                    // 穿戴裝備
+                    this.equipItem(item, i);
+                });
                 this.inventoryUI.add(hitArea);
             }
             this.inventoryUI.add(bg);
@@ -217,25 +230,6 @@ class MainScene extends Phaser.Scene {
         for(let i = 0; i < lines.length; i++){
             this.tooltip.add(this.add.text(-w/2 + 5, -h/2 + 8 + i * 15, lines[i], {fontSize:'11px', color:'#fff'}));
         }
-        this.inventoryUI.add(this.add.text(560,70,'🎒 背包 (30格)',{fontSize:'14px',color:'#c0c0c0'}).setOrigin(0.5));
-        for(let i=0; i<30; i++){
-            const row = Math.floor(i/6), col = i%6;
-            const bx = 430 + col*42, by = 100 + row*42;
-            const item = this.gameState.inventory[i];
-            const bg = this.add.rectangle(bx,by,38,38, item?0x2a2a2a:0x151515,0.9).setStrokeStyle(1, item?0x00ffff:0x333333);
-            if(item) this.inventoryUI.add(this.add.text(bx-8,by-8,item,{fontSize:'14px'}));
-            // Hover
-            bg.setInteractive();
-            bg.on('pointerover', () => {
-                if(item) this.showItemTooltip({name:item, desc:'擊殺掉落'}, bx, by - 30);
-            });
-            bg.on('pointerout', () => {
-                if(this.tooltip) { this.tooltip.destroy(); this.tooltip = null; }
-            });
-            this.inventoryUI.add(bg);
-        }
-        
-        // 可部署 Operators
         this.inventoryUI.add(this.add.text(560,350,'🛡️ 可部署單位',{fontSize:'14px',color:'#c0c0c0'}).setOrigin(0.5));
         const ops = this.equipment.getDeployableOperators();
         let oy = 380;
@@ -249,7 +243,7 @@ class MainScene extends Phaser.Scene {
         // 說明
         this.inventoryUI.add(this.add.text(400,515,'💡 點擊部署點放置Operator | 數字鍵1-5選擇 | SPACE切換技能',{fontSize:'10px',color:'#666'}).setOrigin(0.5));
     }
-    showItemTooltip(item, x, y){
+    showItemTooltip(item, x, y, canEquip){
         if(this.tooltip) this.tooltip.destroy();
         this.tooltip = this.add.container(x, y).setDepth(100);
         const lines = [item.name];
@@ -268,6 +262,7 @@ class MainScene extends Phaser.Scene {
         // 插槽數
         if(item.slots) lines.push('💎 插槽: ' + item.slots + ' 洞');
         if(item.id) lines.push('📋 ID: ' + item.id);
+        if(canEquip) lines.push('👆 點擊穿戴');
         
         const h = lines.length * 16 + 10;
         const w = 160;
@@ -275,6 +270,50 @@ class MainScene extends Phaser.Scene {
         for(let i = 0; i < lines.length; i++){
             this.tooltip.add(this.add.text(-w/2 + 5, -h/2 + 8 + i * 15, lines[i], {fontSize:'11px', color:'#ffd700'}));
         }
+    }
+    
+    // 穿戴裝備
+    equipItem(item, inventoryIndex){
+        // 根據裝備類型決定欄位
+        let targetSlot = null;
+        const category = item.category || item.id?.replace(/_\d+/, '').slice(0,-3);
+        
+        if(item.id?.startsWith('weapon_') || category === 'weapon'){
+            // 武器可裝備到 雙手武器 或 主手
+            if(!this.equipment.equipment['雙手武器'].item) targetSlot = '雙手武器';
+            else if(!this.equipment.equipment['主手'].item) targetSlot = '主手';
+        }else if(item.id?.startsWith('armor_') || category === 'armor'){
+            targetSlot = '胸甲';
+        }else if(item.id?.startsWith('helm_')){
+            targetSlot = '頭盔';
+        }else if(item.id?.startsWith('gloves_')){
+            targetSlot = '手套';
+        }else if(item.id?.startsWith('boots_')){
+            targetSlot = '鞋子';
+        }
+        
+        if(!targetSlot){
+            this.showMessage('無法穿戴!', 400, 300, '#ff0000');
+            return;
+        }
+        
+        // 如果欄位已有裝備，先脫下
+        const currentItem = this.equipment.equipment[targetSlot].item;
+        if(currentItem){
+            this.gameState.inventory.push(currentItem);
+        }
+        
+        // 裝備新物品
+        this.equipment.equipment[targetSlot] = {
+            item: item,
+            gems: Array(item.slots || 2).fill(null)
+        };
+        
+        // 從背包移除
+        this.gameState.inventory.splice(inventoryIndex, 1);
+        
+        this.showMessage('穿戴: '+item.name, 400, 300, '#4ecdc4');
+        this.toggleInventory(); // 重新整理UI
     }
     createSkillBar(){
         const barY=560,barX=600;
