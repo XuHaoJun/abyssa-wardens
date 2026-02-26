@@ -170,16 +170,28 @@ class MainScene extends Phaser.Scene {
         if(this.tooltip) this.tooltip.destroy();
         this.tooltip = this.add.container(x, y).setDepth(100);
         const lines = [gem.name];
-        const typeColor = gem.type === 'skill' ? '#ff6b35' : gem.type === 'operator' ? '#4ecdc4' : '#8888ff';
-        lines.push('類型: ' + (gem.type === 'skill' ? '🔴 技能石' : gem.type === 'operator' ? '🟡 陣地石' : '🔵 輔助石'));
+        
+        // 寶石類型
+        const gemType = gem.type || 'support';
+        const typeIcon = gemType === 'skill' ? '🔴' : gemType === 'operator' ? '🟡' : '🔵';
+        const typeName = gemType === 'skill' ? '技能石' : gemType === 'operator' ? '陣地石' : '輔助石';
+        lines.push('🏷️ 類型: ' + typeIcon + ' ' + typeName);
+        
+        // 技能石屬性
         if(gem.damage_percent) lines.push('⚔️ 傷害: ' + gem.damage_percent + '%');
         if(gem.cooldown) lines.push('⏱️ 冷卻: ' + gem.cooldown + '秒');
         if(gem.range) lines.push('📏 範圍: ' + gem.range);
+        
+        // 陣地石屬性
         if(gem.hp) lines.push('❤️ 生命: ' + gem.hp);
         if(gem.def) lines.push('🛡️ 防禦: ' + gem.def);
+        if(gem.res) lines.push('⚡ 抗性: ' + gem.res + '%');
         if(gem.block) lines.push('🚫 阻擋: ' + gem.block);
         if(gem.cost) lines.push('💰 花費: ' + gem.cost);
         if(gem.category) lines.push('🏷️ 職業: ' + gem.category);
+        if(gem.heal) lines.push('💚 治療: ' + gem.heal);
+        
+        // 輔助石屬性
         if(gem.area_percent) lines.push('📐 範圍+: ' + gem.area_percent + '%');
         if(gem.projectile_count) lines.push('🎯 投射+: ' + gem.projectile_count);
         if(gem.chain_count) lines.push('⛓️ 連鎖: ' + gem.chain_count);
@@ -228,24 +240,27 @@ class MainScene extends Phaser.Scene {
         if(this.tooltip) this.tooltip.destroy();
         this.tooltip = this.add.container(x, y).setDepth(100);
         const lines = [item.name];
-        const typeColor = item.type === 'skill' ? '#ff6b35' : item.type === 'operator' ? '#4ecdc4' : '#8888ff';
-        lines.push('類型: ' + (item.type === 'skill' ? '🔴 技能石' : item.type === 'operator' ? '🟡 陣地石' : '🔵 輔助石'));
-        if(item.damage) lines.push('⚔️ 傷害: ' + item.damage);
-        if(item.range) lines.push('📏 範圍: ' + item.range);
-        if(item.cooldown) lines.push('⏱️ 冷卻: ' + (item.cooldown/1000) + '秒');
-        if(item.hp) lines.push('❤️ 生命: ' + item.hp);
-        if(item.atk) lines.push('⚔️ 攻擊: ' + item.atk);
-        if(item.block) lines.push('🚫 阻擋: ' + item.block);
-        if(item.cost) lines.push('💰 花費: ' + item.cost);
-        if(item.multi) lines.push('🎯 多重: x' + item.multi);
-        if(item.dmgBonus) lines.push('💪 增傷: x' + item.dmgBonus);
-        if(item.speedBonus) lines.push('⚡ 加速: x' + item.speedBonus);
+        const stats = item.stats || {};
+        
+        // 裝備屬性（詞綴）
+        if(stats.damage) lines.push('⚔️ 攻擊: ' + stats.damage);
+        if(stats.armor) lines.push('🛡️ 防禦: ' + stats.armor);
+        if(stats.block) lines.push('🚫 格擋: ' + stats.block);
+        if(stats.evasion) lines.push('💨 閃避: ' + stats.evasion + '%');
+        if(stats.attack_speed) lines.push('⚡ 攻速: ' + stats.attack_speed);
+        if(stats.spell_power) lines.push('✨ 法術: ' + stats.spell_power);
+        if(stats.energy_shield) lines.push('🔷 能量盾: ' + stats.energy_shield);
+        if(stats.move_speed) lines.push('👟 移速: +' + stats.move_speed);
+        
+        // 插槽數
+        if(item.slots) lines.push('💎 插槽: ' + item.slots + ' 洞');
+        if(item.id) lines.push('📋 ID: ' + item.id);
         
         const h = lines.length * 16 + 10;
-        const w = 140;
+        const w = 160;
         this.tooltip.add(this.add.rectangle(0, 0, w, h, 0x000000, 0.95).setStrokeStyle(1, 0xffd700));
         for(let i = 0; i < lines.length; i++){
-            this.tooltip.add(this.add.text(-w/2 + 5, -h/2 + 8 + i * 15, lines[i], {fontSize:'11px', color:'#fff'}));
+            this.tooltip.add(this.add.text(-w/2 + 5, -h/2 + 8 + i * 15, lines[i], {fontSize:'11px', color:'#ffd700'}));
         }
     }
     createSkillBar(){
